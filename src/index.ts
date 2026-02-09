@@ -1,6 +1,7 @@
 import express from 'express';
 import nunjucks from 'nunjucks';
 import dotenv from 'dotenv';
+import { fetchJobRoles } from './api';
 
 dotenv.config();
 
@@ -24,6 +25,21 @@ app.get('/', (req, res) => {
     title: 'Kainos Job Roles',
     message: 'Welcome to the Kainos Job Application System'
   });
+});
+
+app.get('/job-roles', async (req, res) => {
+  try {
+    const jobRoles = await fetchJobRoles();
+    res.render('job-role-list', {
+      title: 'Available Job Roles',
+      jobRoles
+    });
+  } catch (error) {
+    res.status(500).render('error', {
+      title: 'Error',
+      message: 'Unable to load job roles. Please try again later.'
+    });
+  }
 });
 
 app.get('/health', (req, res) => {

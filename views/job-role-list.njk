@@ -1,0 +1,34 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Available Job Roles</h2>
+        
+        {% if jobRoles.length === 0 %}
+            <p class="text-gray-600">No job roles are currently available.</p>
+        {% else %}
+            <table class="w-full border-collapse border border-gray-300">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Role Name</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Location</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Capability</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Band</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Closing Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for role in jobRoles %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-2">{{ role.roleName }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.location }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.capability }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.band }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.closingDate }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}
