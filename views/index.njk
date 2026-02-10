@@ -2,13 +2,13 @@
 
 {% block content %}
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-4xl font-bold mb-8" style="color: #283583;">Find Your Next Opportunity</h1>
+        <h1 class="text-4xl font-bold mb-8" style="color: var(--brand-primary);">Find Your Next Opportunity</h1>
         
         <!-- Filter Bar -->
         <div class="flex gap-4 mb-8">
             <div class="flex-1">
-                <label class="block text-sm font-semibold mb-2" style="color: #283583;">Location</label>
-                <select id="locationFilter" class="w-full px-4 py-2 border rounded-lg focus:outline-none" style="border-color: #283583; color: #283583;">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--brand-primary);">Location</label>
+                <select id="locationFilter" class="w-full px-4 py-2 border rounded-lg focus:outline-none" style="border-color: var(--brand-primary); color: var(--brand-primary);">
                     <option value="">-- Select Location --</option>
                     <option value="belfast">Belfast</option>
                     <option value="dublin">Dublin</option>
@@ -18,15 +18,15 @@
                 </select>
             </div>
             <div class="flex-1">
-                <label class="block text-sm font-semibold mb-2" style="color: #283583;">Job Type</label>
-                <select id="jobTypeFilter" class="w-full px-4 py-2 border rounded-lg focus:outline-none" style="border-color: #283583; color: #283583;">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--brand-primary);">Job Type</label>
+                <select id="jobTypeFilter" class="w-full px-4 py-2 border rounded-lg focus:outline-none" style="border-color: var(--brand-primary); color: var(--brand-primary);">
                     <option value="">-- Select Job Type --</option>
                     <option value="fulltime">Full-time</option>
                     <option value="parttime">Part-time</option>
                 </select>
             </div>
             <div class="flex items-end">
-                <button id="searchButton" class="px-6 py-2 rounded-lg text-white hover:opacity-90" style="background-color: #283583;">
+                <button id="searchButton" class="px-6 py-2 rounded-lg text-white hover:opacity-90" style="background-color: var(--brand-primary);">
                     Search
                 </button>
             </div>

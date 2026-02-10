@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="bg-gray-100">
     <header class="bg-white p-4 flex justify-between items-center">
-        <img src="/KainosLogo.png" alt="Kainos" class="logo" style="height: 50px;">
-        <button class="sign-in-button flex items-center gap-2 px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: #283583; border-color: #283583;">
+        <img src="/KainosLogo.png" alt="Kainos" class="logo" style="height: 50px; width: auto;">
+        <button class="sign-in-button flex items-center gap-2 px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary);">
             <img src="/SignInIcon.png" alt="" class="sign-in-icon" style="height: 25px;">
             <span>Sign In</span>
         </button>
@@ -23,7 +24,7 @@
     <footer class="bg-gray-800 text-white p-8">
         <div class="container mx-auto flex justify-between items-start gap-8">
             <div class="footer-logo">
-                <img src="/KainosLogo.png" alt="Kainos" style="height: 50px; filter: brightness(0) invert(1);">
+                <img src="/KainosLogo.png" alt="Kainos" style="height: 50px; width: auto; filter: brightness(0) invert(1);">
             </div>
             <div class="footer-contact">
                 <h3 class="font-bold mb-2">Contact Us</h3>

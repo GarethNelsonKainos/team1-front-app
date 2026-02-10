@@ -1,2 +1,7 @@
+/* Kainos Brand Variables */
+:root {
+  --brand-primary: #283583;
+}
+
 /* Simple CSS - use CDN Tailwind in HTML instead */
 body { font-family: 'Century Gothic', 'Trebuchet MS', sans-serif; }
