@@ -19,5 +19,3 @@ export class JobRoleController {
     }
   }
 }
-
-export const jobRoleController = new JobRoleController();

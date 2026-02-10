@@ -27,21 +27,6 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/job-roles', async (req, res) => {
-  try {
-    const jobRoles = await fetchJobRoles();
-    res.render('job-role-list', {
-      title: 'Available Job Roles',
-      jobRoles
-    });
-  } catch (error) {
-    res.status(500).render('error', {
-      title: 'Error',
-      message: 'Unable to load job roles. Please try again later.'
-    });
-  }
-});
-
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
