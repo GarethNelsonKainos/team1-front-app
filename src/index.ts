@@ -1,6 +1,6 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 // Configure Nunjucks
 nunjucks.configure('views', {
   autoescape: true,
-  express: app
+  express: app,
 });
 
 app.set('view engine', 'njk');
@@ -20,9 +20,9 @@ app.use(express.static('public'));
 
 // Routes
 app.get('/', (req, res) => {
-  res.render('index', { 
+  res.render('index', {
     title: 'Kainos Job Roles',
-    message: 'Welcome to the Kainos Job Application System'
+    message: 'Welcome to the Kainos Job Application System',
   });
 });
 
