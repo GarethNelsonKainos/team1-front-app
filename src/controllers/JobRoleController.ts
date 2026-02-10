@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import { jobRoleService } from '../services/JobRoleService';
+import {Application, Request, Response} from 'express';
+import { JobRoleService } from "../services/JobRoleService";
 
-export class JobRoleController {
-  async getJobRoles(req: Request, res: Response): Promise<void> {
+export default function JobRoleController(app: Application, jobRoleService: JobRoleService) {
+  app.get('/job-roles', async (_req: Request, res: Response) => {
     try {
       const jobRoles = await jobRoleService.getJobRoles();
       
@@ -16,6 +16,6 @@ export class JobRoleController {
         title: 'Error',
         message: 'Unable to load job roles. Please try again later.'
       });
-    }
-  }
+    }});
+
 }

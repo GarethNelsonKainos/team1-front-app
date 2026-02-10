@@ -2,6 +2,8 @@ import express from 'express';
 import nunjucks from 'nunjucks';
 import dotenv from 'dotenv';
 import { fetchJobRoles } from './api';
+import JobRoleController from './controllers/JobRoleController';
+import { JobRoleService } from './services/JobRoleService';
 
 dotenv.config();
 
@@ -35,5 +37,9 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Frontend running on port ${PORT}`);
 });
+
+const jobRoleService = new JobRoleService();
+
+JobRoleController(app, jobRoleService);
 
 export default app;

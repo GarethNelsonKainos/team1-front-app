@@ -16,5 +16,3 @@ export class JobRoleService {
     }
   }
 }
-
-export const jobRoleService = new JobRoleService();
