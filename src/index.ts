@@ -1,6 +1,6 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import dotenv from 'dotenv';
 
 dotenv.config();
 

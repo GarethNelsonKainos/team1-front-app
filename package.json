@@ -9,8 +9,8 @@
     "start": "tsx src/index.ts",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "lint": "biome lint ./src",
-    "lint:fix": "biome lint ./src --apply"
+    "lint": "biome check .",
+    "lint:fix": "biome check . --write"
   },
   "repository": {
     "type": "git",
