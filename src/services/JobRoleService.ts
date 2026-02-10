@@ -12,7 +12,9 @@ export class JobRoleService {
       return response.data;
     } catch (error: unknown) {
       console.error('Error fetching job roles:', error);
-      throw new Error('Failed to fetch job roles', { cause: error });
+      const err = new Error('Failed to fetch job roles');
+      (err as any).cause = error;
+      throw err;
     }
   }
 }
