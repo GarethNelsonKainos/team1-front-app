@@ -2,24 +2,43 @@
 
 {% block content %}
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-3xl font-bold text-gray-800 mb-4">{{ message }}</h2>
-        <p class="text-gray-600 mb-6">
-            This is the minimal viable product for the Kainos Job Application System.
-            Features will be implemented according to the identified user stories.
-        </p>
+        <h1 class="text-4xl font-bold mb-8" style="color: var(--brand-primary);">Find Your Next Opportunity</h1>
         
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <h3 class="text-xl font-semibold text-blue-800 mb-2">For Job Seekers</h3>
-                <p class="text-blue-600">Browse available job roles and submit applications</p>
-                <!-- Future: Link to job roles listing -->
+        <!-- Filter Bar -->
+        <div class="flex gap-4 mb-8">
+            <div class="flex-1">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--brand-primary);">Location</label>
+                <select id="locationFilter" class="w-full px-4 py-2 border rounded-lg focus:outline-none" style="border-color: var(--brand-primary); color: var(--brand-primary);">
+                    <option value="">-- Select Location --</option>
+                    <option value="belfast">Belfast</option>
+                    <option value="dublin">Dublin</option>
+                    <option value="london">London</option>
+                    <option value="manchester">Manchester</option>
+                    <option value="edinburgh">Edinburgh</option>
+                </select>
             </div>
-            
-            <div class="bg-green-50 p-4 rounded-lg">
-                <h3 class="text-xl font-semibold text-green-800 mb-2">For HR Team</h3>
-                <p class="text-green-600">Manage job roles and review applications</p>
-                <!-- Future: Link to admin dashboard -->
+            <div class="flex-1">
+                <label class="block text-sm font-semibold mb-2" style="color: var(--brand-primary);">Job Type</label>
+                <select id="jobTypeFilter" class="w-full px-4 py-2 border rounded-lg focus:outline-none" style="border-color: var(--brand-primary); color: var(--brand-primary);">
+                    <option value="">-- Select Job Type --</option>
+                    <option value="fulltime">Full-time</option>
+                    <option value="parttime">Part-time</option>
+                </select>
             </div>
+            <div class="flex items-end">
+                <button id="searchButton" class="px-6 py-2 rounded-lg text-white hover:opacity-90" style="background-color: var(--brand-primary);">
+                    Search
+                </button>
+            </div>
+        </div>
+
+        <!-- Job Listings -->
+        <div id="jobListings" class="space-y-4">
+            <!-- Job cards will be populated here from backend -->
+        </div>
+
+        <div id="noResults" class="text-center py-8">
+            <p class="text-gray-500 text-lg">No jobs found matching your criteria</p>
         </div>
     </div>
 {% endblock %}
