@@ -1,8 +1,6 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import dotenv from 'dotenv';
-import { fetchJobRoles } from './api';
 import JobRoleController from './controllers/JobRoleController';
 import { JobRoleService } from './services/JobRoleService';
 
