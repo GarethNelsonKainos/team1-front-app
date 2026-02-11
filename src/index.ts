@@ -28,6 +28,12 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get('/login', (req, res) => {
+  res.render('login', {
+    title: 'Sign In - Kainos Job Roles',
+  });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });

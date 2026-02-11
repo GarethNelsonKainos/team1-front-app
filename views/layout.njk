@@ -11,10 +11,23 @@
 <body class="bg-gray-100">
     <header class="bg-white p-4 flex justify-between items-center">
         <img src="/KainosLogo.png" alt="Kainos" class="logo" style="height: 50px; width: auto;">
-        <button class="sign-in-button flex items-center gap-2 px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary);">
-            <img src="/SignInIcon.png" alt="" class="sign-in-icon" style="height: 25px;">
-            <span>Sign In</span>
-        </button>
+        
+        <!-- Sign In/Out button container -->
+        <div id="authContainer">
+            <!-- Sign In button (shown when not logged in) -->
+            <a href="/login" id="signInButton" class="sign-in-button flex items-center gap-2 px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary);">
+                <img src="/SignInIcon.png" alt="" class="sign-in-icon" style="height: 25px;">
+                <span>Sign In</span>
+            </a>
+            
+            <!-- User menu (shown when logged in) -->
+            <div id="userMenu" class="hidden flex items-center gap-4">
+                <span id="userEmail" class="text-sm" style="color: var(--brand-primary);"></span>
+                <button id="signOutButton" class="sign-out-button px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary);">
+                    Sign Out
+                </button>
+            </div>
+        </div>
     </header>
 
     <main class="container mx-auto p-4">
@@ -43,5 +56,60 @@
             <p>&copy; 2026 Kainos. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        // Authentication state management
+        document.addEventListener('DOMContentLoaded', function() {
+            const signInButton = document.getElementById('signInButton');
+            const userMenu = document.getElementById('userMenu');
+            const userEmail = document.getElementById('userEmail');
+            const signOutButton = document.getElementById('signOutButton');
+
+            // Check authentication status
+            function checkAuthStatus() {
+                const token = sessionStorage.getItem('authToken');
+                const email = sessionStorage.getItem('userEmail');
+
+                if (token && email) {
+                    // User is logged in
+                    signInButton.classList.add('hidden');
+                    userMenu.classList.remove('hidden');
+                    userEmail.textContent = email;
+                } else {
+                    // User is not logged in
+                    signInButton.classList.remove('hidden');
+                    userMenu.classList.add('hidden');
+                }
+            }
+
+            // Sign out handler
+            function signOut() {
+                // Clear authentication data
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('userEmail');
+                
+                // Update UI
+                checkAuthStatus();
+                
+                // Redirect to home page
+                window.location.href = '/';
+            }
+
+            // Add click handler for sign out button
+            if (signOutButton) {
+                signOutButton.addEventListener('click', signOut);
+            }
+
+            // Check auth status on page load
+            checkAuthStatus();
+
+            // Listen for auth changes (for when login happens in another tab)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'authToken' || e.key === 'userEmail') {
+                    checkAuthStatus();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
