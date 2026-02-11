@@ -6,7 +6,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      exclude: ['node_modules/**', 'dist/**', '*.config.*', 'jest.setup.js'],
+      exclude: ['node_modules/**', 'dist/**', '*.config.*'],
       thresholds: {
         branches: 80,
         functions: 80,
