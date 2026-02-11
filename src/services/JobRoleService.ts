@@ -10,7 +10,7 @@ export class JobRoleService {
         `${API_BASE_URL}/api/job-roles`,
       );
       return response.data;
-    } catch (error: Error | unknown) {
+    } catch (error: unknown) {
       console.error('Error fetching job roles:', error);
       throw error;
     }
