@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { JobRole } from './models/JobRole';
+import type { JobRole } from './models/JobRole';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
 
