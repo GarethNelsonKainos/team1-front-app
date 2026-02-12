@@ -15,4 +15,16 @@ export class JobRoleService {
       throw error;
     }
   }
+
+  async getJobRoleById(id: string | number): Promise<JobRole> {
+    try {
+      const response = await axios.get<JobRole>(
+        `${API_BASE_URL}/api/job-roles/${id}`,
+      );
+      return response.data;
+    } catch (error: unknown) {
+      console.error(`Error fetching job role with id ${id}:`, error);
+      throw error;
+    }
+  }
 }
