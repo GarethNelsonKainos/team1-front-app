@@ -22,6 +22,25 @@ describe('Frontend Application', () => {
     });
   });
 
+  describe('GET /login', () => {
+    it('should render the login page', async () => {
+      const response = await request(app).get('/login');
+
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Sign In');
+      expect(response.text).toContain('Email Address');
+      expect(response.text).toContain('Password');
+      expect(response.text).toContain('Back to Job Listings');
+    });
+
+    it('should have the correct page title', async () => {
+      const response = await request(app).get('/login');
+
+      expect(response.status).toBe(200);
+      expect(response.text).toContain('Sign In - Kainos Job Roles');
+    });
+  });
+
   describe('Static File Serving', () => {
     it('should serve static files from public directory', async () => {
       const response = await request(app).get('/css/styles.css');
