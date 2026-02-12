@@ -1,0 +1,26 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+  <div class="job-role-info">
+    <h1>{{ jobRole.name }}</h1>
+    <p><strong>Description:</strong> {{ jobRole.description }}</p>
+    <p><strong>Responsibilities:</strong></p>
+    <ul>
+      {% for responsibility in jobRole.responsibilities %}
+        <li>{{ responsibility }}</li>
+      {% endfor %}
+    </ul>
+    <p>
+      <strong>Job Spec:</strong>
+      <a href="{{ jobRole.sharePointLink }}" target="_blank" rel="noopener">
+        View Job Spec
+      </a>
+    </p>
+    <p><strong>Location:</strong> {{ jobRole.location }}</p>
+    <p><strong>Capability:</strong> {{ jobRole.capability }}</p>
+    <p><strong>Band:</strong> {{ jobRole.band }}</p>
+    <p><strong>Closing Date:</strong> {{ jobRole.closingDate }}</p>
+    <p><strong>Status:</strong> {{ jobRole.status }}</p>
+    <p><strong>Number of Open Positions:</strong> {{ jobRole.openPositions }}</p>
+  </div>
+{% endblock %}
