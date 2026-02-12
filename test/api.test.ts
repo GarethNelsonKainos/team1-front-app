@@ -64,7 +64,7 @@ describe('API', () => {
           createdAt: '2026-02-12T10:00:00Z',
         },
       };
-      
+
       mockedPost.mockResolvedValue({ data: mockResponse });
 
       const result = await submitApplication(1, 'fake-jwt-token');
@@ -86,7 +86,9 @@ describe('API', () => {
       const error = new Error('Network error');
       mockedPost.mockRejectedValue(error);
 
-      await expect(submitApplication(1, 'fake-jwt-token')).rejects.toThrow('Network error');
+      await expect(submitApplication(1, 'fake-jwt-token')).rejects.toThrow(
+        'Network error',
+      );
     });
   });
 });
