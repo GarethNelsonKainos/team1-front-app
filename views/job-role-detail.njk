@@ -1,0 +1,92 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">{{ jobRole.roleName }}</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Job Details</h3>
+                <p><strong>Location:</strong> {{ jobRole.location }}</p>
+                <p><strong>Capability:</strong> {{ jobRole.capability }}</p>
+                <p><strong>Band:</strong> {{ jobRole.band }}</p>
+                <p><strong>Closing Date:</strong> {{ jobRole.closingDate }}</p>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <button 
+                id="applyButton" 
+                class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                onclick="applyForRole({{ jobRole.jobRoleId }})"
+            >
+                Apply for this Role
+            </button>
+            <div id="applicationMessage" class="mt-2 text-sm"></div>
+        </div>
+
+        <div class="mt-6">
+            <a href="/job-roles" class="text-blue-600 hover:text-blue-800">
+                ← Back to Job Roles
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function applyForRole(jobRoleId) {
+            const button = document.getElementById('applyButton');
+            const messageDiv = document.getElementById('applicationMessage');
+            
+            // Check if user is logged in
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                messageDiv.innerHTML = '<span class="text-red-600">Please sign in to apply for roles.</span>';
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Applying...';
+            messageDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/applications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ jobRoleId: jobRoleId })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    messageDiv.innerHTML = '<span class="text-green-600">Application submitted successfully!</span>';
+                    button.textContent = 'Applied';
+                    button.disabled = true;
+                } else {
+                    messageDiv.innerHTML = `<span class="text-red-600">${data.error || 'Failed to submit application'}</span>`;
+                    button.disabled = false;
+                    button.textContent = 'Apply for this Role';
+                }
+            } catch (error) {
+                console.error('Error submitting application:', error);
+                messageDiv.innerHTML = '<span class="text-red-600">Network error. Please try again.</span>';
+                button.disabled = false;
+                button.textContent = 'Apply for this Role';
+            }
+        }
+
+        // Check on page load if user is logged in and show/hide apply button
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('authToken');
+            const applyButton = document.getElementById('applyButton');
+            
+            if (!token) {
+                applyButton.style.display = 'none';
+                document.getElementById('applicationMessage').innerHTML = 
+                    '<span class="text-gray-600">Please <a href="/login" class="text-blue-600 hover:text-blue-800">sign in</a> to apply for this role.</span>';
+            }
+        });
+    </script>
+{% endblock %}
