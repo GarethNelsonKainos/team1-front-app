@@ -18,12 +18,7 @@ describe('Login Functionality', () => {
 
     expect(response.text).toContain('validateForm');
     expect(response.text).toContain('isValidEmail');
-    expect(response.text).toContain('length < 6');
-  });
-
-  it('should include authentication handling', async () => {
-    const response = await request(app).get('/login');
-
+    expect(response.text).toContain('length < 8');
     expect(response.text).toContain('sessionStorage');
     expect(response.text).toContain('authToken');
     expect(response.text).toContain('/api/auth/login');

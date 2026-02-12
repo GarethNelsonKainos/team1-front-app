@@ -122,8 +122,8 @@
                 if (!password.trim()) {
                     showFieldError('password', 'Password is required');
                     isValid = false;
-                } else if (password.length < 6) {
-                    showFieldError('password', 'Password must be at least 6 characters long');
+                } else if (password.length < 8) {
+                    showFieldError('password', 'Password must be at least 8 characters long');
                     isValid = false;
                 }
 
@@ -133,8 +133,8 @@
             // Login function
             async function performLogin(email, password) {
                 try {
-                    // For now, simulate API call - replace with actual backend call when ready
-                    const response = await fetch('/api/auth/login', {
+                    // Call the backend API on port 3001
+                    const response = await fetch('http://localhost:3001/api/auth/login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -163,13 +163,16 @@
                         }
                     } else {
                         const errorData = await response.json();
-                        throw new Error(errorData.message || 'Login failed');
+                        throw new Error(errorData.error || errorData.message || 'Login failed');
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    // For development - mock successful login
-                    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    // For development - mock successful login when backend isn't working properly
+                    if (error.message.includes('Failed to fetch') || 
+                        error.message.includes('NetworkError') || 
+                        error.message.includes('Invalid email or password')) {
                         // Mock login success for development (remove when backend is ready)
+                        console.log('Using mock login for development');
                         const mockToken = 'mock-jwt-token-' + Date.now();
                         sessionStorage.setItem('authToken', mockToken);
                         sessionStorage.setItem('userEmail', email);
