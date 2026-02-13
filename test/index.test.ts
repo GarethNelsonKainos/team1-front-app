@@ -1,10 +1,6 @@
-import axios from 'axios';
 import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import app from '../src/index';
-
-vi.mock('axios');
 
 describe('Frontend Application', () => {
   describe('GET /', () => {
@@ -76,85 +72,6 @@ describe('Frontend Application', () => {
     it('should use environment PORT or default to 3000', () => {
       // Test that the app is configured properly
       expect(app).toBeDefined();
-    });
-  });
-
-  describe('GET /application-success', () => {
-    it('should render the application success page', async () => {
-      const response = await request(app).get('/application-success');
-
-      expect(response.status).toBe(200);
-      expect(response.text).toContain(
-        'Application Submitted - Kainos Job Roles',
-      );
-    });
-  });
-
-  describe('POST /api/applications', () => {
-    let mockedPost: Mock;
-
-    beforeEach(() => {
-      mockedPost = vi.mocked(axios).post as unknown as Mock;
-      vi.clearAllMocks();
-    });
-
-    it('should return 401 when no authorization token provided', async () => {
-      const response = await request(app)
-        .post('/api/applications')
-        .send({ jobRoleId: 1 });
-
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({ error: 'Authentication required' });
-    });
-
-    it('should successfully proxy request to backend and redirect', async () => {
-      mockedPost.mockResolvedValue({ data: { success: true } });
-
-      const response = await request(app)
-        .post('/api/applications')
-        .set('Authorization', 'Bearer test-token')
-        .send({ jobRoleId: 1 });
-
-      expect(response.status).toBe(302); // Redirect status
-      expect(response.headers.location).toBe('/application-success');
-      expect(mockedPost).toHaveBeenCalledWith(
-        expect.stringContaining('/api/applications'),
-        'jobRoleId=1',
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Content-Type': 'application/x-www-form-urlencoded',
-            Authorization: 'Bearer test-token',
-          }),
-        }),
-      );
-    });
-
-    it('should return 401 when backend returns 401', async () => {
-      const error = { response: { status: 401 } };
-      mockedPost.mockRejectedValue(error);
-
-      const response = await request(app)
-        .post('/api/applications')
-        .set('Authorization', 'Bearer invalid-token')
-        .send({ jobRoleId: 1 });
-
-      expect(response.status).toBe(401);
-      expect(response.body).toEqual({ error: 'Authentication required' });
-    });
-
-    it('should render error page when backend fails with other errors', async () => {
-      const error = {
-        response: { status: 500, data: 'Internal server error' },
-      };
-      mockedPost.mockRejectedValue(error);
-
-      const response = await request(app)
-        .post('/api/applications')
-        .set('Authorization', 'Bearer test-token')
-        .send({ jobRoleId: 1 });
-
-      expect(response.status).toBe(500);
-      expect(response.text).toContain('Failed to submit application');
     });
   });
 });

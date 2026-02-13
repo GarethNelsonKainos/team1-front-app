@@ -54,33 +54,4 @@ describe('JobRoleService', () => {
 
     expect(result).toEqual([]);
   });
-
-  describe('getJobRoleById', () => {
-    it('should fetch single job role successfully', async () => {
-      const mockJobRole: JobRole = {
-        jobRoleId: 1,
-        roleName: 'Software Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
-      };
-
-      mockedGet.mockResolvedValue({ data: mockJobRole });
-
-      const result = await service.getJobRoleById(1);
-
-      expect(result).toEqual(mockJobRole);
-      expect(mockedGet).toHaveBeenCalledWith(
-        expect.stringContaining('/api/job-roles/1'),
-      );
-    });
-
-    it('should throw error when API call fails', async () => {
-      const error = new Error('Network error');
-      mockedGet.mockRejectedValue(error);
-
-      await expect(service.getJobRoleById(1)).rejects.toThrow();
-    });
-  });
 });

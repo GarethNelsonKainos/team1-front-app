@@ -69,4 +69,10 @@ export default function JobRoleController(
       });
     }
   });
+
+  app.post('/job-roles/:id/apply', async (req: Request, res: Response) => {
+    // For now, just redirect to success page
+    // TODO: Implement actual application submission to backend
+    res.redirect('/application-success');
+  });
 }
