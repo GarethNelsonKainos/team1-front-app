@@ -1,6 +1,6 @@
-import request from 'supertest';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
 import axios from 'axios';
+import request from 'supertest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 import app from '../src/index';
 
@@ -84,7 +84,9 @@ describe('Frontend Application', () => {
       const response = await request(app).get('/application-success');
 
       expect(response.status).toBe(200);
-      expect(response.text).toContain('Application Submitted - Kainos Job Roles');
+      expect(response.text).toContain(
+        'Application Submitted - Kainos Job Roles',
+      );
     });
   });
 
@@ -121,9 +123,9 @@ describe('Frontend Application', () => {
         expect.objectContaining({
           headers: expect.objectContaining({
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Bearer test-token'
-          })
-        })
+            Authorization: 'Bearer test-token',
+          }),
+        }),
       );
     });
 
@@ -141,7 +143,9 @@ describe('Frontend Application', () => {
     });
 
     it('should render error page when backend fails with other errors', async () => {
-      const error = { response: { status: 500, data: 'Internal server error' } };
+      const error = {
+        response: { status: 500, data: 'Internal server error' },
+      };
       mockedPost.mockRejectedValue(error);
 
       const response = await request(app)

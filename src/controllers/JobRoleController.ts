@@ -1,5 +1,6 @@
 import type { Application, Request, Response } from 'express';
 import type { JobRoleService } from '../services/JobRoleService';
+import { formatTimestampToDateString } from '../utils/date-formatter';
 
 export default function JobRoleController(
   app: Application,
@@ -24,11 +25,17 @@ export default function JobRoleController(
 
   app.get('/job-roles/:id', async (req: Request, res: Response) => {
     try {
-      const idParam = Array.isArray(req.params.id)
-        ? req.params.id[0]
-        : req.params.id;
-      const jobRole = await jobRoleService.getJobRoleById(idParam);
+      const jobRoleId = Number.parseInt(req.params.id, 10);
 
+      if (Number.isNaN(jobRoleId)) {
+        res.status(400).render('error', {
+          title: 'Error',
+          message: 'Invalid job role ID.',
+        });
+        return;
+      }
+
+      const jobRole = await jobRoleService.getJobRole(jobRoleId);
       const formattedClosingDate = formatTimestampToDateString(
         jobRole.closingDate,
       );
@@ -39,10 +46,10 @@ export default function JobRoleController(
         formattedClosingDate: formattedClosingDate,
       });
     } catch (error) {
-      console.error('Error fetching job role information:', error);
+      console.error('Error in JobRoleController:', error);
       res.status(500).render('error', {
         title: 'Error',
-        message: 'Unable to load job role information. Please try again later.',
+        message: 'Unable to load job role details. Please try again later.',
       });
     }
   });

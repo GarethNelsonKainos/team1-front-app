@@ -78,28 +78,30 @@ describe('JobRoleController', () => {
         status: 'Open',
       };
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
-        mockJobRole,
-      );
+      vi.mocked(mockJobRoleService.getJobRole).mockResolvedValue(mockJobRole);
 
       const response = await request(app).get('/job-roles/1');
 
       expect(response.status).toBe(200);
-      expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
-        '1',
-      );
+      expect(vi.mocked(mockJobRoleService.getJobRole)).toHaveBeenCalledWith(1);
+      expect(response.body.view).toBe('job-role-information');
+      expect(response.body.title).toBe('Software Engineer');
+      expect(response.body.jobRole).toEqual(mockJobRole);
+      expect(response.body.formattedClosingDate).toBeDefined();
     });
 
     it('should return 500 error when service fails', async () => {
-      vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
+      vi.mocked(mockJobRoleService.getJobRole).mockRejectedValue(
         new Error('Service error'),
       );
 
       const response = await request(app).get('/job-roles/1');
 
       expect(response.status).toBe(500);
-      expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
-        '1',
+      expect(vi.mocked(mockJobRoleService.getJobRole)).toHaveBeenCalledWith(1);
+      expect(response.body.view).toBe('error');
+      expect(response.body.message).toContain(
+        'Unable to load job role details',
       );
     });
   });
