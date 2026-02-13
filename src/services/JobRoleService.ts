@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { JobRole } from '../models/JobRole';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export class JobRoleService {
   async getJobRoles(): Promise<JobRole[]> {

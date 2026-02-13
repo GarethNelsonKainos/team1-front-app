@@ -14,7 +14,7 @@ export default function JobRoleController(
         title: 'Available Job Roles',
         jobRoles: jobRoles,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error in JobRoleController:', error);
       res.status(500).render('error', {
         title: 'Error',

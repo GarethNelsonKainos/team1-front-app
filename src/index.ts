@@ -1,10 +1,8 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import express from 'express';
 import nunjucks from 'nunjucks';
 import JobRoleController from './controllers/JobRoleController';
 import { JobRoleService } from './services/JobRoleService';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,17 +26,23 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK' });
+app.get('/login', (req, res) => {
+  res.render('login', {
+    title: 'Sign In - Kainos Job Roles',
+  });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Frontend running on port ${PORT}`);
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK' });
 });
 
 const jobRoleService = new JobRoleService();
 
 JobRoleController(app, jobRoleService);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Frontend running on port ${PORT}`);
+});
 
 export default app;
