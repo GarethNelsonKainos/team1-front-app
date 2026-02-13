@@ -36,9 +36,14 @@ export default function JobRoleController(
 
       const jobRole = await jobRoleService.getJobRole(jobRoleId);
 
-      res.render('job-role-detail', {
+      const formattedClosingDate = formatTimestampToDateString(
+        jobRole.closingDate,
+      );
+
+      res.render('job-role-information', {
         title: `${jobRole.roleName} - Job Details`,
         jobRole: jobRole,
+        formattedClosingDate: formattedClosingDate,
       });
     } catch (error) {
       console.error('Error in JobRoleController:', error);

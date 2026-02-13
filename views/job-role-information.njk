@@ -45,12 +45,16 @@
         </a>
       </div>
       <div class="flex justify-center mt-8">
-        <button 
-            type="button" 
-            class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold"
-            href="/job-roles/{{ jobRole.jobRoleId }}/apply">
-          Apply Now
-        </button>
+        <a href="/job-roles" 
+           class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded mr-4 transition-colors">
+          Back to Job Roles
+        </a>
+        {% if jobRole.status === "Open" and jobRole.openPositions > 0 %}
+          <a href="/job-roles/{{ jobRole.jobRoleId }}/apply"
+             class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold">
+            Apply Now
+          </a>
+        {% endif %}
       </div>
     </form>
   </div>
