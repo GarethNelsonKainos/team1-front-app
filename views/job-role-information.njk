@@ -1,0 +1,57 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+  <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-8 mt-8">
+    <h1 class="text-2xl font-bold mb-6 text-center">{{ jobRole.roleName }}</h1>
+    <form class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block font-semibold">Location</label>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.location }}</div>
+        </div>
+        <div>
+          <label class="block font-semibold">Closing Date</label>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ formattedClosingDate }}</div>
+        </div>
+        <div>
+          <label class="block font-semibold">Capability</label>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.capability }}</div>
+        </div>
+        <div>
+          <label class="block font-semibold">Band</label>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.band }}</div>
+        </div>
+        <div>
+          <label class="block font-semibold">Status</label>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.status }}</div>
+        </div>
+        <div>
+          <label class="block font-semibold">Openings</label>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.openPositions }}</div>
+        </div>
+      </div>
+      <div>
+        <label class="block font-semibold">Description</label>
+        <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.description }}</div>
+      </div>
+      <div>
+        <label class="block font-semibold">Responsibilities</label>
+        <div class="bg-gray-100 rounded px-3 py-2 whitespace-pre-line">{{ jobRole.responsibilities }}</div>
+      </div>
+      <div>
+        <label class="block font-semibold">Job Spec</label>
+        <a href="{{ jobRole.sharepointUrl }}" target="_blank" rel="noopener" class="text-blue-700 underline">
+          View Job Spec
+        </a>
+      </div>
+      <div class="flex justify-center mt-8">
+        <button 
+            type="button" 
+            class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold"
+            href="/job-roles/{{ jobRole.jobRoleId }}/apply">
+          Apply Now
+        </button>
+      </div>
+    </form>
+  </div>
+{% endblock %}

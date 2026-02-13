@@ -5,4 +5,9 @@ export interface JobRole {
   capability: string;
   band: string;
   closingDate: string;
+  description?: string;
+  responsibilities?: string;
+  jobSpecLink?: string;
+  openPositions?: number;
+  status?: string;
 }
