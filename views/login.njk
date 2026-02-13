@@ -167,22 +167,11 @@
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    // For development - mock successful login when backend isn't working properly
+                    
+                    // Handle network errors vs authentication errors
                     if (error.message.includes('Failed to fetch') || 
-                        error.message.includes('NetworkError') || 
-                        error.message.includes('Invalid email or password')) {
-                        // Mock login success for development (remove when backend is ready)
-                        console.log('Using mock login for development');
-                        const mockToken = 'mock-jwt-token-' + Date.now();
-                        sessionStorage.setItem('authToken', mockToken);
-                        sessionStorage.setItem('userEmail', email);
-                        
-                        hideMessages();
-                        successMessage.classList.remove('hidden');
-                        
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 1500);
+                        error.message.includes('NetworkError')) {
+                        showError('Unable to connect to server. Please try again later.');
                     } else {
                         showError('Invalid email or password. Please try again.');
                     }
