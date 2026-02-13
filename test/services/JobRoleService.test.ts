@@ -55,7 +55,7 @@ describe('JobRoleService', () => {
     expect(result).toEqual([]);
   });
 
-  describe('getJobRole', () => {
+  describe('getJobRoleById', () => {
     it('should fetch single job role successfully', async () => {
       const mockJobRole: JobRole = {
         jobRoleId: 1,
@@ -68,7 +68,7 @@ describe('JobRoleService', () => {
 
       mockedGet.mockResolvedValue({ data: mockJobRole });
 
-      const result = await service.getJobRole(1);
+      const result = await service.getJobRoleById(1);
 
       expect(result).toEqual(mockJobRole);
       expect(mockedGet).toHaveBeenCalledWith(
@@ -80,7 +80,7 @@ describe('JobRoleService', () => {
       const error = new Error('Network error');
       mockedGet.mockRejectedValue(error);
 
-      await expect(service.getJobRole(1)).rejects.toThrow();
+      await expect(service.getJobRoleById(1)).rejects.toThrow();
     });
   });
 });
