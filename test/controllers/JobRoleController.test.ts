@@ -67,7 +67,7 @@ describe('JobRoleController', () => {
   });
 
   describe('GET /job-roles/:id', () => {
-    it('should render job-role-detail when fetching job role successfully', async () => {
+    it('should render job-role-information when fetching job role successfully', async () => {
       const mockJobRole: JobRole = {
         jobRoleId: 1,
         roleName: 'Software Engineer',
@@ -78,30 +78,29 @@ describe('JobRoleController', () => {
         status: 'Open',
       };
 
-      vi.mocked(mockJobRoleService.getJobRole).mockResolvedValue(mockJobRole);
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
+        mockJobRole,
+      );
 
       const response = await request(app).get('/job-roles/1');
 
       expect(response.status).toBe(200);
-      expect(vi.mocked(mockJobRoleService.getJobRole)).toHaveBeenCalledWith(1);
-    });
-
-    it('should return 400 error for invalid job role ID', async () => {
-      const response = await request(app).get('/job-roles/invalid');
-
-      expect(response.status).toBe(400);
-      expect(vi.mocked(mockJobRoleService.getJobRole)).not.toHaveBeenCalled();
+      expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
+        '1',
+      );
     });
 
     it('should return 500 error when service fails', async () => {
-      vi.mocked(mockJobRoleService.getJobRole).mockRejectedValue(
+      vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
         new Error('Service error'),
       );
 
       const response = await request(app).get('/job-roles/1');
 
       expect(response.status).toBe(500);
-      expect(vi.mocked(mockJobRoleService.getJobRole)).toHaveBeenCalledWith(1);
+      expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
+        '1',
+      );
     });
   });
 

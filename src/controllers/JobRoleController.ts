@@ -24,32 +24,25 @@ export default function JobRoleController(
 
   app.get('/job-roles/:id', async (req: Request, res: Response) => {
     try {
-      const jobRoleId = Number.parseInt(req.params.id, 10);
-
-      if (Number.isNaN(jobRoleId)) {
-        res.status(400).render('error', {
-          title: 'Error',
-          message: 'Invalid job role ID.',
-        });
-        return;
-      }
-
-      const jobRole = await jobRoleService.getJobRole(jobRoleId);
+      const idParam = Array.isArray(req.params.id)
+        ? req.params.id[0]
+        : req.params.id;
+      const jobRole = await jobRoleService.getJobRoleById(idParam);
 
       const formattedClosingDate = formatTimestampToDateString(
         jobRole.closingDate,
       );
 
       res.render('job-role-information', {
-        title: `${jobRole.roleName} - Job Details`,
+        title: jobRole.roleName,
         jobRole: jobRole,
         formattedClosingDate: formattedClosingDate,
       });
     } catch (error) {
-      console.error('Error in JobRoleController:', error);
+      console.error('Error fetching job role information:', error);
       res.status(500).render('error', {
         title: 'Error',
-        message: 'Unable to load job role details. Please try again later.',
+        message: 'Unable to load job role information. Please try again later.',
       });
     }
   });
