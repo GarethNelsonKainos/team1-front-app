@@ -23,13 +23,13 @@ describe('JobRoleController', () => {
 
     // Spy on res.render to capture view and data
     app.use((req, res, next) => {
-    // @ts-ignore
-    renderSpy = vi.fn((_view: string, _data: unknown) => {
-      res.send({ view: _view, ...(_data as object) });
+      // @ts-ignore
+      renderSpy = vi.fn((_view: string, _data: unknown) => {
+        res.send({ view: _view, ...(_data as object) });
+      });
+      res.render = renderSpy;
+      next();
     });
-    res.render = renderSpy;
-    next();
-  });
 
     JobRoleController(app, mockJobRoleService);
   });
@@ -86,7 +86,9 @@ describe('JobRoleController', () => {
     const response = await request(app).get('/job-roles/2');
 
     expect(response.status).toBe(200);
-    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith('2');
+    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
+      '2',
+    );
     expect(response.body.view).toBe('job-role-information');
     expect(response.body.jobRole.roleName).toBe('Test Engineer');
     expect(response.body.formattedClosingDate).toBeDefined();
@@ -100,8 +102,12 @@ describe('JobRoleController', () => {
     const response = await request(app).get('/job-roles/2');
 
     expect(response.status).toBe(500);
-    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith('2');
+    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
+      '2',
+    );
     expect(response.body.view).toBe('error');
-    expect(response.body.message).toContain('Unable to load job role information');
+    expect(response.body.message).toContain(
+      'Unable to load job role information',
+    );
   });
 });
