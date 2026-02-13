@@ -18,6 +18,9 @@ app.set('view engine', 'njk');
 // Static files
 app.use(express.static('public'));
 
+// Body parser middleware
+app.use(express.urlencoded({ extended: true }));
+
 // Routes
 app.get('/', (req, res) => {
   res.render('index', {
@@ -29,6 +32,12 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login', {
     title: 'Sign In - Kainos Job Roles',
+  });
+});
+
+app.get('/application-success', (req, res) => {
+  res.render('application-success', {
+    title: 'Application Submitted - Kainos Job Roles',
   });
 });
 

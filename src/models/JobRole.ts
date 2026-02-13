@@ -5,4 +5,5 @@ export interface JobRole {
   capability: string;
   band: string;
   closingDate: string;
+  status: string;
 }
