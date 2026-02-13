@@ -7,6 +7,7 @@ export interface JobRole {
   closingDate: string;
   description?: string;
   responsibilities?: string;
-  sharepointUrl?: string;
-  numberOfOpenPositions?: number;
+  jobSpecLink?: string;
+  openPositions?: number;
+  status?: string;
 }

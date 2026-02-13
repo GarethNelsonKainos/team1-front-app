@@ -27,7 +27,7 @@
         </div>
         <div>
           <label class="block font-semibold">Openings</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.numberOfOpenPositions }}</div>
+          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.openPositions }}</div>
         </div>
       </div>
       <div>
@@ -40,7 +40,7 @@
       </div>
       <div>
         <label class="block font-semibold">Job Spec</label>
-        <a href="{{ jobRole.sharepointUrl }}" target="_blank" rel="noopener" class="text-blue-700 underline">
+        <a href="{{ jobRole.jobSpecLink }}" target="_blank" rel="noopener" class="text-blue-700 underline">
           View Job Spec
         </a>
       </div>

@@ -20,7 +20,11 @@
                 <tbody>
                     {% for role in jobRoles %}
                         <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-300 px-4 py-2">{{ role.roleName }}</td>
+                            <td class="border border-gray-300 px-4 py-2">
+                                <a href="/job-roles/{{ role.jobRoleId }}" class="text-blue-700 underline hover:text-blue-900">
+                                    {{ role.roleName }}
+                                </a>
+                            </td>
                             <td class="border border-gray-300 px-4 py-2">{{ role.location }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ role.capability }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ role.band }}</td>
