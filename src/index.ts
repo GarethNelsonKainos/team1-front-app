@@ -49,6 +49,13 @@ const jobRoleService = new JobRoleService();
 
 JobRoleController(app, jobRoleService);
 
+
+app.use((req, res) => {
+  res.status(404).render('404', {
+    title: '404 - Page Not Found',
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Frontend running on port ${PORT}`);
