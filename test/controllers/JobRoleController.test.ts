@@ -5,6 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import JobRoleController from '../../src/controllers/JobRoleController';
 import type { JobRole } from '../../src/models/JobRole';
 import type { JobRoleService } from '../../src/services/JobRoleService';
+import * as FeatureFlags from '../../src/utils/FeatureFlags';
+
+// Mock FeatureFlags
+vi.mock('../../src/utils/FeatureFlags');
 
 describe('JobRoleController', () => {
   let app: Application;
@@ -111,8 +115,11 @@ describe('JobRoleController', () => {
     );
   });
 
-  // Test for apply functionality  
+  // Test for apply functionality
   it('should render job-apply page when accessing apply route', async () => {
+    // Mock feature flag as enabled
+    vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+
     const mockJobRole: JobRole = {
       jobRoleId: 1,
       roleName: 'Software Engineer',
@@ -125,9 +132,95 @@ describe('JobRoleController', () => {
     vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
     const response = await request(app).get('/job-roles/1/apply');
-    
+
     expect(response.status).toBe(200);
     expect(response.body.view).toBe('job-apply');
     expect(response.body.roleName).toBe('Software Engineer');
+  });
+
+  // Feature flag tests
+  describe('Feature Flag: Job Applications', () => {
+    it('should include feature flag in job detail page response', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+
+      const mockJobRole: JobRole = {
+        jobRoleId: 1,
+        roleName: 'Software Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28',
+      };
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
+        mockJobRole,
+      );
+
+      const response = await request(app).get('/job-roles/1');
+
+      expect(response.status).toBe(200);
+      expect(response.body.isJobApplicationsEnabled).toBe(true);
+      expect(
+        vi.mocked(FeatureFlags.isJobApplicationsEnabled),
+      ).toHaveBeenCalled();
+    });
+
+    it('should block apply route when feature is disabled', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(false);
+
+      const response = await request(app).get('/job-roles/1/apply');
+
+      expect(response.status).toBe(404);
+      expect(response.body.view).toBe('error');
+      expect(response.body.message).toContain(
+        'Job applications are currently not available',
+      );
+      expect(
+        vi.mocked(mockJobRoleService.getJobRoleById),
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should block POST apply route when feature is disabled', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(false);
+
+      const response = await request(app).post('/job-roles/1/apply');
+
+      expect(response.status).toBe(404);
+      expect(response.body.view).toBe('error');
+      expect(response.body.message).toContain(
+        'Job applications are currently not available',
+      );
+    });
+
+    it('should allow apply route when feature is enabled', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+
+      const mockJobRole: JobRole = {
+        jobRoleId: 1,
+        roleName: 'Software Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28',
+      };
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
+        mockJobRole,
+      );
+
+      const response = await request(app).get('/job-roles/1/apply');
+
+      expect(response.status).toBe(200);
+      expect(response.body.view).toBe('job-apply');
+    });
+
+    it('should redirect to success page on POST when feature is enabled', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+
+      const response = await request(app).post('/job-roles/1/apply');
+
+      expect(response.status).toBe(302); // Redirect status
+      expect(response.headers.location).toBe('/application-success');
+    });
   });
 });

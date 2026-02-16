@@ -1,5 +1,6 @@
 import type { Application, Request, Response } from 'express';
 import type { JobRoleService } from '../services/JobRoleService';
+import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
 
 export default function JobRoleController(
@@ -38,6 +39,7 @@ export default function JobRoleController(
         title: jobRole.roleName,
         jobRole: jobRole,
         formattedClosingDate: formattedClosingDate,
+        isJobApplicationsEnabled: isJobApplicationsEnabled(),
       });
     } catch (error) {
       console.error('Error fetching job role information:', error);
@@ -50,6 +52,15 @@ export default function JobRoleController(
 
   app.get('/job-roles/:id/apply', async (req: Request, res: Response) => {
     try {
+      // Check if job applications feature is enabled
+      if (!isJobApplicationsEnabled()) {
+        res.status(404).render('error', {
+          title: 'Feature Not Available',
+          message: 'Job applications are currently not available.',
+        });
+        return;
+      }
+
       const idParam = Array.isArray(req.params.id)
         ? req.params.id[0]
         : req.params.id;
@@ -71,6 +82,15 @@ export default function JobRoleController(
   });
 
   app.post('/job-roles/:id/apply', async (req: Request, res: Response) => {
+    // Check if job applications feature is enabled
+    if (!isJobApplicationsEnabled()) {
+      res.status(404).render('error', {
+        title: 'Feature Not Available',
+        message: 'Job applications are currently not available.',
+      });
+      return;
+    }
+
     // For now, just redirect to success page
     // TODO: Implement actual application submission to backend
     res.redirect('/application-success');

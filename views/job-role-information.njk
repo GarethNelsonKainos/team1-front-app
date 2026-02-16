@@ -45,11 +45,26 @@
         </a>
       </div>
     </form>
-    <div class="flex justify-center mt-8">
-      <a href="/job-roles/{{ jobRole.jobRoleId }}/apply"
-          class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold">
-        Apply Now
+    <div class="flex justify-center mt-8 space-x-4">
+      <a href="/job-roles" 
+         class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded font-semibold transition-colors">
+        Back to Job Roles
       </a>
+      
+      {% if isJobApplicationsEnabled and jobRole.status === "Open" and jobRole.openPositions > 0 %}
+        <a href="/job-roles/{{ jobRole.jobRoleId }}/apply"
+           class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold transition-colors">
+          Apply Now
+        </a>
+      {% elif not isJobApplicationsEnabled %}
+        <div class="text-gray-500 px-6 py-2">
+          Job applications are currently unavailable
+        </div>
+      {% elif jobRole.status !== "Open" or jobRole.openPositions <= 0 %}
+        <div class="text-gray-500 px-6 py-2">
+          This position is no longer available
+        </div>
+      {% endif %}
     </div>
   </div>
 {% endblock %}
