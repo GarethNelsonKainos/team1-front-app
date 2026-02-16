@@ -54,4 +54,24 @@ describe('JobRoleService', () => {
 
     expect(result).toEqual([]);
   });
+
+  it('should fetch job role by id successfully', async () => {
+    const mockJobRole: JobRole = {
+      jobRoleId: 1,
+      roleName: 'Software Engineer',
+      location: 'London',
+      capability: 'Engineering',
+      band: 'Band 4',
+      closingDate: '2026-02-28',
+    };
+
+    mockedGet.mockResolvedValue({ data: mockJobRole });
+
+    const result = await service.getJobRoleById('1');
+
+    expect(result).toEqual(mockJobRole);
+    expect(mockedGet).toHaveBeenCalledWith(
+      expect.stringContaining('/api/job-roles/1'),
+    );
+  });
 });
