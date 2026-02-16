@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { getAllFlags, isJobApplicationsEnabled } from '../../src/utils/FeatureFlags';
+import {
+  getAllFlags,
+  isJobApplicationsEnabled,
+} from '../../src/utils/FeatureFlags';
 
 describe('FeatureFlags', () => {
   describe('isJobApplicationsEnabled', () => {
