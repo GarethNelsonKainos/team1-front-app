@@ -126,8 +126,10 @@ export default function JobRoleController(
 
         const jobRoleId = req.params.id;
 
-        // Get auth token from session/cookies (assuming it's stored there)
-        const authToken = req.session?.authToken || req.cookies?.authToken;
+        // Get auth token from cookies or authorization header
+        const authToken =
+          req.cookies?.authToken ||
+          req.headers.authorization?.replace('Bearer ', '');
         if (!authToken) {
           res.redirect('/login');
           return;
