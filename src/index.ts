@@ -41,6 +41,10 @@ app.get('/application-success', (req, res) => {
   });
 });
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK' });
+});
+
 const jobRoleService = new JobRoleService();
 
 JobRoleController(app, jobRoleService);
