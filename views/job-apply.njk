@@ -4,7 +4,7 @@
 <div class="container mx-auto max-w-md mt-8 p-6 bg-white rounded shadow">
     <h2 class="text-2xl mb-4">Apply for {{ roleName }}</h2>
     
-    <form action="/job-roles/{{ jobRoleId }}/apply" method="post" class="space-y-4">
+    <form id="applicationForm" class="space-y-4">
         <div>
             <label class="block mb-2 font-medium">CV Upload</label>
             <input type="file" id="cvFile" accept=".pdf" class="w-full p-2 border border-gray-300 rounded">
@@ -29,12 +29,50 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const applicationForm = document.getElementById('applicationForm');
     const cvFileInput = document.getElementById('cvFile');
     const uploadStatus = document.getElementById('uploadStatus');
     const uploadProgress = document.getElementById('uploadProgress');
     const progressBar = document.getElementById('progressBar');
 
     let cvUploaded = false;
+
+    // Handle form submission
+    applicationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const token = sessionStorage.getItem('authToken');
+        if (!token) {
+            alert('Please sign in to apply for this role');
+            window.location.href = '/login';
+            return;
+        }
+
+        // Submit application to backend
+        fetch('http://localhost:3001/api/applications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                jobRoleId: {{ jobRoleId }}
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Application failed: ' + data.error);
+            } else {
+                alert('Application submitted successfully!');
+                window.location.href = '/application-success';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while submitting your application');
+        });
+    });
 
     cvFileInput.addEventListener('change', function(e) {
         const file = e.target.files[0];

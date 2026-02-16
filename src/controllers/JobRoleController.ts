@@ -82,17 +82,8 @@ export default function JobRoleController(
   });
 
   app.post('/job-roles/:id/apply', async (req: Request, res: Response) => {
-    // Check if job applications feature is enabled
-    if (!isJobApplicationsEnabled()) {
-      res.status(404).render('error', {
-        title: 'Feature Not Available',
-        message: 'Job applications are currently not available.',
-      });
-      return;
-    }
-
-    // For now, just redirect to success page
-    // TODO: Implement actual application submission to backend
+    // This route is now handled by JavaScript form submission to backend API
+    // Redirect to success page as fallback
     res.redirect('/application-success');
   });
 }
