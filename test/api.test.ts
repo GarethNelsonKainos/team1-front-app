@@ -25,7 +25,12 @@ describe('API', () => {
       },
     ];
 
-    mockedGet.mockResolvedValue({ data: mockJobRoles });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: true,
+        jobRoles: mockJobRoles,
+      },
+    });
 
     const result = await fetchJobRoles();
 
@@ -43,7 +48,12 @@ describe('API', () => {
   });
 
   it('should return empty array when no job roles exist', async () => {
-    mockedGet.mockResolvedValue({ data: [] });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: false,
+        jobRoles: [],
+      },
+    });
 
     const result = await fetchJobRoles();
 

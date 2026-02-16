@@ -8,10 +8,12 @@ vi.mock('axios');
 
 describe('JobRoleService', () => {
   let mockedGet: Mock;
+  let mockedDelete: Mock;
   const service = new JobRoleService();
 
   beforeEach(() => {
     mockedGet = vi.mocked(axios).get as unknown as Mock;
+    mockedDelete = vi.mocked(axios).delete as unknown as Mock;
   });
 
   afterEach(() => {
@@ -30,11 +32,19 @@ describe('JobRoleService', () => {
       },
     ];
 
-    mockedGet.mockResolvedValue({ data: mockJobRoles });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: true,
+        jobRoles: mockJobRoles,
+      },
+    });
 
     const result = await service.getJobRoles();
 
-    expect(result).toEqual(mockJobRoles);
+    expect(result).toEqual({
+      canDelete: true,
+      jobRoles: mockJobRoles,
+    });
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles'),
     );
@@ -48,10 +58,29 @@ describe('JobRoleService', () => {
   });
 
   it('should return empty array when no job roles exist', async () => {
-    mockedGet.mockResolvedValue({ data: [] });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: false,
+        jobRoles: [],
+      },
+    });
 
     const result = await service.getJobRoles();
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({
+      canDelete: false,
+      jobRoles: [],
+    });
+  });
+
+  it('should delete job role successfully', async () => {
+    mockedDelete.mockResolvedValue({ status: 204 });
+
+    await service.deleteJobRole(123, 'token');
+
+    expect(mockedDelete).toHaveBeenCalledWith(
+      expect.stringContaining('/api/job-roles/123'),
+      { headers: { Authorization: 'Bearer token' } },
+    );
   });
 });

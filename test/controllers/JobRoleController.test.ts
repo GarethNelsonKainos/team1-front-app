@@ -19,6 +19,7 @@ describe('JobRoleController', () => {
     mockJobRoleService = {
       getJobRoles: vi.fn(),
       getJobRoleById: vi.fn(),
+      deleteJobRole: vi.fn(),
     } as unknown as JobRoleService;
 
     // Spy on res.render to capture view and data
@@ -46,12 +47,16 @@ describe('JobRoleController', () => {
       },
     ];
 
-    vi.mocked(mockJobRoleService.getJobRoles).mockResolvedValue(mockJobRoles);
+    vi.mocked(mockJobRoleService.getJobRoles).mockResolvedValue({
+      canDelete: true,
+      jobRoles: mockJobRoles,
+    });
 
     const response = await request(app).get('/job-roles');
 
     expect(response.status).toBe(200);
     expect(vi.mocked(mockJobRoleService.getJobRoles)).toHaveBeenCalled();
+    expect(response.body.canDelete).toBe(true);
   });
 
   it('should return 500 error when service fails', async () => {
@@ -81,7 +86,10 @@ describe('JobRoleController', () => {
       numberOfOpenPositions: 2,
     };
 
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
+    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+      canDelete: true,
+      jobRole: mockJobRole,
+    });
 
     const response = await request(app).get('/job-roles/2');
 
@@ -92,6 +100,7 @@ describe('JobRoleController', () => {
     expect(response.body.view).toBe('job-role-information');
     expect(response.body.jobRole.roleName).toBe('Test Engineer');
     expect(response.body.formattedClosingDate).toBeDefined();
+    expect(response.body.canDelete).toBe(true);
   });
 
   it('should return 500 error when fetching a job role by id fails', async () => {

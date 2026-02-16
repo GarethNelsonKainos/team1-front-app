@@ -2,15 +2,17 @@ import type { Application, Request, Response } from 'express';
 import type { JobRoleService } from '../services/JobRoleService';
 import { formatTimestampToDateString } from '../utils/date-formatter';
 
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
+
 export default function JobRoleController(
   app: Application,
   jobRoleService: JobRoleService,
 ) {
   app.get('/job-roles', async (_req: Request, res: Response) => {
     try {
-      const jobRoles = await jobRoleService.getJobRoles();
+      const { jobRoles, canDelete } = await jobRoleService.getJobRoles();
 
-      const formattedJobRoles = jobRoles.map(role => ({
+      const formattedJobRoles = jobRoles.map((role) => ({
         ...role,
         formattedClosingDate: formatTimestampToDateString(role.closingDate),
       }));
@@ -18,6 +20,8 @@ export default function JobRoleController(
       res.render('job-role-list', {
         title: 'Available Job Roles',
         jobRoles: formattedJobRoles,
+        canDelete,
+        apiBaseUrl: API_BASE_URL,
       });
     } catch (error: unknown) {
       console.error('Error in JobRoleController:', error);
@@ -33,7 +37,8 @@ export default function JobRoleController(
       const idParam = Array.isArray(req.params.id)
         ? req.params.id[0]
         : req.params.id;
-      const jobRole = await jobRoleService.getJobRoleById(idParam);
+      const { jobRole, canDelete } =
+        await jobRoleService.getJobRoleById(idParam);
 
       const formattedClosingDate = formatTimestampToDateString(
         jobRole.closingDate,
@@ -43,6 +48,8 @@ export default function JobRoleController(
         title: jobRole.roleName,
         jobRole: jobRole,
         formattedClosingDate: formattedClosingDate,
+        canDelete,
+        apiBaseUrl: API_BASE_URL,
       });
     } catch (error) {
       console.error('Error fetching job role information:', error);
