@@ -74,4 +74,11 @@ describe('JobRoleService', () => {
       expect.stringContaining('/api/job-roles/1'),
     );
   });
+
+  it('should throw error when getJobRoleById API call fails', async () => {
+    const error = new Error('Network error');
+    mockedGet.mockRejectedValue(error);
+
+    await expect(service.getJobRoleById('1')).rejects.toThrow();
+  });
 });

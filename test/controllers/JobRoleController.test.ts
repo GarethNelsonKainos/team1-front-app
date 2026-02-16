@@ -82,6 +82,17 @@ describe('JobRoleController', () => {
     expect(response.body.jobRole.roleName).toBe('Test Engineer');
   });
 
+  it('should return 500 error when fetching job role by id fails', async () => {
+    vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
+      new Error('Service error'),
+    );
+
+    const response = await request(app).get('/job-roles/2');
+
+    expect(response.status).toBe(500);
+    expect(response.body.view).toBe('error');
+  });
+
   // Test for apply functionality
   it('should render job-apply page when accessing apply route', async () => {
     // Mock feature flag as enabled
@@ -188,6 +199,31 @@ describe('JobRoleController', () => {
 
       expect(response.status).toBe(302); // Redirect status
       expect(response.headers.location).toBe('/application-success');
+    });
+
+    it('should handle error in apply page loading', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+      vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
+        new Error('Service error'),
+      );
+
+      const response = await request(app).get('/job-roles/1/apply');
+
+      expect(response.status).toBe(500);
+      expect(response.body.view).toBe('error');
+    });
+
+    it('should handle error in POST apply route', async () => {
+      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockImplementation(
+        () => {
+          throw new Error('Feature flag error');
+        },
+      );
+
+      const response = await request(app).post('/job-roles/1/apply');
+
+      expect(response.status).toBe(500);
+      expect(response.body.view).toBe('error');
     });
   });
 });

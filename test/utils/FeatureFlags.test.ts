@@ -11,6 +11,11 @@ describe('FeatureFlags', () => {
       expect(isJobApplicationsEnabled()).toBe(true);
     });
 
+    it('should return true when ENABLE_JOB_APPLICATIONS is "1"', () => {
+      process.env.ENABLE_JOB_APPLICATIONS = '1';
+      expect(isJobApplicationsEnabled()).toBe(true);
+    });
+
     it('should return false when ENABLE_JOB_APPLICATIONS is not set', () => {
       process.env.ENABLE_JOB_APPLICATIONS = undefined;
       expect(isJobApplicationsEnabled()).toBe(false);
