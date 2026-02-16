@@ -10,9 +10,14 @@ export default function JobRoleController(
     try {
       const jobRoles = await jobRoleService.getJobRoles();
 
+      const formattedJobRoles = jobRoles.map(role => ({
+        ...role,
+        formattedClosingDate: formatTimestampToDateString(role.closingDate),
+      }));
+
       res.render('job-role-list', {
         title: 'Available Job Roles',
-        jobRoles: jobRoles,
+        jobRoles: formattedJobRoles,
       });
     } catch (error: unknown) {
       console.error('Error in JobRoleController:', error);
