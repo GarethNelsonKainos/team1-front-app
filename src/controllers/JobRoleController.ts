@@ -99,7 +99,8 @@ export default function JobRoleController(
       console.error('Error in JobRoleController:', error);
       res.status(500).render('error', {
         title: 'Error',
-        message: 'Unable to process application request. Please try again later.',
+        message:
+          'Unable to process application request. Please try again later.',
       });
     }
   });
