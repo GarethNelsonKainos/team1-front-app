@@ -82,17 +82,25 @@ export default function JobRoleController(
   });
 
   app.post('/job-roles/:id/apply', async (req: Request, res: Response) => {
-    // Check if job applications feature is enabled
-    if (!isJobApplicationsEnabled()) {
-      res.status(404).render('error', {
-        title: 'Feature Not Available',
-        message: 'Job applications are currently not available.',
-      });
-      return;
-    }
+    try {
+      // Check if job applications feature is enabled
+      if (!isJobApplicationsEnabled()) {
+        res.status(404).render('error', {
+          title: 'Feature Not Available',
+          message: 'Job applications are currently not available.',
+        });
+        return;
+      }
 
-    // This route is now handled by JavaScript form submission to backend API
-    // Redirect to success page as fallback
-    res.redirect('/application-success');
+      // This route is now handled by JavaScript form submission to backend API
+      // Redirect to success page as fallback
+      res.redirect('/application-success');
+    } catch (error) {
+      console.error('Error in JobRoleController:', error);
+      res.status(500).render('error', {
+        title: 'Error',
+        message: 'Unable to process application request. Please try again later.',
+      });
+    }
   });
 }
