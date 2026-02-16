@@ -7,7 +7,21 @@ import type { JobRole } from '../../src/models/JobRole';
 import type { JobRoleService } from '../../src/services/JobRoleService';
 import * as FeatureFlags from '../../src/utils/FeatureFlags';
 
+// Mock external dependencies
 vi.mock('../../src/utils/FeatureFlags');
+vi.mock('multer', () => {
+  const mockMulter = vi.fn(() => ({
+    single: vi.fn(
+      () => (req: unknown, res: unknown, next: () => void) => next(),
+    ),
+  }));
+  mockMulter.memoryStorage = vi.fn();
+  return {
+    default: mockMulter,
+  };
+});
+vi.mock('axios');
+vi.mock('form-data');
 
 describe('JobRoleController', () => {
   let app: Application;
@@ -192,13 +206,13 @@ describe('JobRoleController', () => {
       expect(response.body.view).toBe('job-apply');
     });
 
-    it('should redirect to success page on POST when feature is enabled', async () => {
+    it('should require CV file for POST application', async () => {
       vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
 
       const response = await request(app).post('/job-roles/1/apply');
 
-      expect(response.status).toBe(302); // Redirect status
-      expect(response.headers.location).toBe('/application-success');
+      expect(response.status).toBe(400); // Missing CV file
+      expect(response.body.view).toBe('error');
     });
 
     it('should handle error in apply page loading', async () => {

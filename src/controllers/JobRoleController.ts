@@ -1,7 +1,27 @@
+import axios from 'axios';
 import type { Application, Request, Response } from 'express';
+import FormData from 'form-data';
+import multer from 'multer';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  },
+});
+
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export default function JobRoleController(
   app: Application,
@@ -81,27 +101,83 @@ export default function JobRoleController(
     }
   });
 
-  app.post('/job-roles/:id/apply', async (req: Request, res: Response) => {
-    try {
-      // Check if job applications feature is enabled
-      if (!isJobApplicationsEnabled()) {
-        res.status(404).render('error', {
-          title: 'Feature Not Available',
-          message: 'Job applications are currently not available.',
-        });
-        return;
-      }
+  app.post(
+    '/job-roles/:id/apply',
+    upload.single('cv'),
+    async (req: Request, res: Response) => {
+      try {
+        // Check if job applications feature is enabled
+        if (!isJobApplicationsEnabled()) {
+          res.status(404).render('error', {
+            title: 'Feature Not Available',
+            message: 'Job applications are currently not available.',
+          });
+          return;
+        }
 
-      // This route is now handled by JavaScript form submission to backend API
-      // Redirect to success page as fallback
-      res.redirect('/application-success');
-    } catch (error) {
-      console.error('Error in JobRoleController:', error);
-      res.status(500).render('error', {
-        title: 'Error',
-        message:
-          'Unable to process application request. Please try again later.',
-      });
-    }
-  });
+        // Validate CV upload
+        if (!req.file) {
+          res.status(400).render('error', {
+            title: 'Missing CV',
+            message: 'Please upload your CV to complete the application.',
+          });
+          return;
+        }
+
+        const jobRoleId = req.params.id;
+
+        // Get auth token from session/cookies (assuming it's stored there)
+        const authToken = req.session?.authToken || req.cookies?.authToken;
+        if (!authToken) {
+          res.redirect('/login');
+          return;
+        }
+
+        try {
+          // Prepare form data for backend API
+          const formData = new FormData();
+          formData.append('cv', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: req.file.mimetype,
+          });
+          formData.append('jobRoleId', jobRoleId);
+
+          // Forward the application + CV to backend API
+          const response = await axios.post(
+            `${API_BASE_URL}/api/applications`,
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+                ...formData.getHeaders(),
+              },
+            },
+          );
+
+          // Redirect to success page
+          res.redirect('/application-success');
+        } catch (apiError: unknown) {
+          console.error('Error submitting application to backend:', apiError);
+
+          let errorMessage =
+            'Unable to submit application. Please try again later.';
+          if (axios.isAxiosError(apiError) && apiError.response?.data?.error) {
+            errorMessage = apiError.response.data.error;
+          }
+
+          res.status(500).render('error', {
+            title: 'Application Failed',
+            message: errorMessage,
+          });
+        }
+      } catch (error) {
+        console.error('Error in JobRoleController:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message:
+            'Unable to process application request. Please try again later.',
+        });
+      }
+    },
+  );
 }

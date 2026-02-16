@@ -4,20 +4,11 @@
 <div class="container mx-auto max-w-md mt-8 p-6 bg-white rounded shadow">
     <h2 class="text-2xl mb-4">Apply for {{ roleName }}</h2>
     
-    <form id="applicationForm" class="space-y-4">
+    <form action="/job-roles/{{ jobRoleId }}/apply" method="POST" enctype="multipart/form-data" class="space-y-4">
         <div>
-            <label class="block mb-2 font-medium">CV Upload</label>
-            <input type="file" id="cvFile" accept=".pdf" class="w-full p-2 border border-gray-300 rounded">
+            <label for="cv" class="block mb-2 font-medium">CV Upload (Required)</label>
+            <input type="file" id="cv" name="cv" accept=".pdf" required class="w-full p-2 border border-gray-300 rounded">
             <p class="text-gray-600 text-xs mt-1">PDF files only, max 5MB</p>
-            
-            <!-- Upload status messages -->
-            <div id="uploadStatus" class="mt-2 hidden"></div>
-            <div id="uploadProgress" class="mt-2 hidden">
-                <div class="bg-gray-200 rounded-full h-2">
-                    <div id="progressBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
-                </div>
-                <p class="text-sm text-gray-600 mt-1">Uploading CV...</p>
-            </div>
         </div>
         
         <div class="flex gap-4">
@@ -26,138 +17,4 @@
         </div>
     </form>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const applicationForm = document.getElementById('applicationForm');
-    const cvFileInput = document.getElementById('cvFile');
-    const uploadStatus = document.getElementById('uploadStatus');
-    const uploadProgress = document.getElementById('uploadProgress');
-    const progressBar = document.getElementById('progressBar');
-
-    let cvUploaded = false;
-
-    // Handle form submission
-    applicationForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const token = sessionStorage.getItem('authToken');
-        if (!token) {
-            alert('Please sign in to apply for this role');
-            window.location.href = '/login';
-            return;
-        }
-
-        // Submit application to backend
-        fetch('http://localhost:3001/api/applications', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                jobRoleId: {{ jobRoleId }}
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('Application failed: ' + data.error);
-            } else {
-                alert('Application submitted successfully!');
-                window.location.href = '/application-success';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while submitting your application');
-        });
-    });
-
-    cvFileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Validate file
-        if (file.type !== 'application/pdf') {
-            showStatus('Only PDF files are allowed', 'error');
-            cvFileInput.value = '';
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            showStatus('File size must be less than 5MB', 'error');
-            cvFileInput.value = '';
-            return;
-        }
-
-        uploadCV(file);
-    });
-
-    function uploadCV(file) {
-        const token = sessionStorage.getItem('authToken');
-        if (!token) {
-            showStatus('Please sign in to upload CV', 'error');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('cv', file);
-
-        // Show progress
-        uploadProgress.classList.remove('hidden');
-        uploadStatus.classList.add('hidden');
-
-        fetch('http://localhost:3001/api/cv/upload', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            uploadProgress.classList.add('hidden');
-            
-            if (data.error) {
-                showStatus(data.error, 'error');
-                cvUploaded = false;
-            } else {
-                showStatus('CV uploaded successfully!', 'success');
-                cvUploaded = true;
-            }
-        })
-        .catch(error => {
-            uploadProgress.classList.add('hidden');
-            showStatus('Upload failed. Please try again.', 'error');
-            cvUploaded = false;
-        });
-    }
-
-    function showStatus(message, type) {
-        uploadStatus.textContent = message;
-        uploadStatus.className = `mt-2 text-sm ${type === 'error' ? 'text-red-600' : 'text-green-600'}`;
-        uploadStatus.classList.remove('hidden');
-    }
-
-    // Simulate progress (since we can't track real progress easily)
-    function simulateProgress() {
-        let width = 0;
-        const interval = setInterval(() => {
-            width += 20;
-            progressBar.style.width = width + '%';
-            if (width >= 100) {
-                clearInterval(interval);
-            }
-        }, 200);
-    }
-
-    // Start progress when upload begins
-    cvFileInput.addEventListener('change', function() {
-        if (this.files[0]) {
-            setTimeout(simulateProgress, 100);
-        }
-    });
-});
-</script>
 {% endblock %}
