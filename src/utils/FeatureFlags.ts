@@ -17,6 +17,14 @@ export function isJobApplicationsEnabled(): boolean {
   return flag.toLowerCase() === 'true' || flag === '1';
 }
 
+export function isAddJobRoleEnabled(): boolean {
+  const flag = process.env.ENABLE_ADD_JOB_ROLE;
+
+  if (!flag) return false;
+
+  return flag.toLowerCase() === 'true' || flag === '1';
+}
+
 /**
  * Get all feature flags for debugging/admin purposes
  * @returns object with all current feature flag states
@@ -24,5 +32,6 @@ export function isJobApplicationsEnabled(): boolean {
 export function getAllFlags(): Record<string, boolean> {
   return {
     jobApplications: isJobApplicationsEnabled(),
+    addJobRole: isAddJobRoleEnabled(),
   };
 }

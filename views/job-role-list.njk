@@ -2,7 +2,17 @@
 
 {% block content %}
     <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6">Currently available roles</h2>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-gray-800">Currently available roles</h2>
+            
+            <!-- TODO: Add authorization check - only show for Admin users -->
+            <div id="adminActions" class="hidden">
+                <a href="/job-roles/add" 
+                   class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    + Add New Job Role
+                </a>
+            </div>
+        </div>
         
         {% if jobRoles | length == 0 %}
             <p class="text-gray-600">No job roles are currently available.</p>
@@ -35,4 +45,7 @@
             </table>
         {% endif %}
     </div>
+
+<script src="/js/job-role-list.js"></script>
+
 {% endblock %}

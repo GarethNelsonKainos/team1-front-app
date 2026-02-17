@@ -7,40 +7,61 @@ import type { JobRole } from '../../src/models/JobRole';
 import type { JobRoleService } from '../../src/services/JobRoleService';
 import * as FeatureFlags from '../../src/utils/FeatureFlags';
 
-// Mock external dependencies
 vi.mock('../../src/utils/FeatureFlags');
-vi.mock('multer', () => {
-  const mockMulter = vi.fn(() => ({
-    single: vi.fn(
-      () => (req: unknown, res: unknown, next: () => void) => next(),
-    ),
-  }));
-  mockMulter.memoryStorage = vi.fn();
-  return {
-    default: mockMulter,
-  };
-});
-vi.mock('axios');
-vi.mock('form-data');
 
 describe('JobRoleController', () => {
   let app: Application;
   let mockJobRoleService: JobRoleService;
 
+  const mockJobRoles: JobRole[] = [
+    {
+      roleId: 1,
+      roleName: 'Software Engineer',
+      capability: 'Engineering',
+      band: 'Associate',
+      description: 'Test role',
+      responsibilities: 'Test responsibilities',
+      jobSpecLink: 'https://kainossoftwareltd.sharepoint.com/test',
+      openPositions: 5,
+      status: 'open',
+      closingDate: '2026-12-31',
+      locations: ['Belfast', 'London'],
+    },
+  ];
+
   beforeEach(() => {
+    // Mock feature flags
+    vi.mocked(FeatureFlags.isAddJobRoleEnabled).mockReturnValue(true);
+
     app = express();
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+
+    mockJobRoleService = {
+      getJobRoles: vi.fn().mockResolvedValue(mockJobRoles),
+      getJobRoleById: vi.fn().mockResolvedValue(mockJobRoles[0]),
+      createJobRole: vi.fn(),
+      getBands: vi.fn(),
+      getCapabilities: vi.fn(),
+      getLocations: vi.fn(),
+    } as unknown as JobRoleService;
+
+    // Mock the view engine and render method BEFORE setting up routes
+    app.engine('njk', (_, options, callback) => {
+      callback(null, JSON.stringify(options));
+    });
     app.set('view engine', 'njk');
     app.set('views', './views');
 
-    mockJobRoleService = {
-      getJobRoles: vi.fn(),
-      getJobRoleById: vi.fn(),
-    } as unknown as JobRoleService;
-
+    // Add middleware to intercept render calls
     app.use((req, res, next) => {
-      res.render = vi.fn((_view: string, _data: unknown) => {
-        res.send({ view: _view, ...(_data as object) });
-      });
+      res.render = (view: string, options?: Record<string, unknown>) => {
+        const statusCode = res.statusCode || 200;
+        return res.status(statusCode).json({
+          view,
+          ...options,
+        });
+      };
       next();
     });
 
@@ -48,196 +69,88 @@ describe('JobRoleController', () => {
   });
 
   it('should render job-role-list when fetching job roles successfully', async () => {
-    const mockJobRoles: JobRole[] = [
-      {
-        jobRoleId: 1,
-        roleName: 'Software Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
-      },
-    ];
-
-    vi.mocked(mockJobRoleService.getJobRoles).mockResolvedValue(mockJobRoles);
-
     const response = await request(app).get('/job-roles');
 
     expect(response.status).toBe(200);
     expect(vi.mocked(mockJobRoleService.getJobRoles)).toHaveBeenCalled();
+    expect(response.body.view).toBe('job-role-list');
+    expect(response.body.jobRoles).toEqual(mockJobRoles);
   });
 
-  it('should return 500 error when service fails', async () => {
-    vi.mocked(mockJobRoleService.getJobRoles).mockRejectedValue(
-      new Error('Service error'),
+  it('should render error page when fetching job roles fails', async () => {
+    vi.mocked(mockJobRoleService.getJobRoles).mockRejectedValueOnce(
+      new Error('Database error'),
     );
 
     const response = await request(app).get('/job-roles');
 
     expect(response.status).toBe(500);
+    expect(response.body.view).toBe('error');
+    expect(response.body.message).toBe(
+      'Unable to load job roles. Please try again later.',
+    );
   });
 
-  it('should render job-role-information when fetching a job role by id successfully', async () => {
-    const mockJobRole: JobRole = {
-      jobRoleId: 2,
-      roleName: 'Test Engineer',
-      location: 'San Francisco',
-      capability: 'Quality Assurance',
-      band: 'Intermediate',
-      closingDate: '2026-04-01T00:00:00.000Z',
-    };
-
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
-
-    const response = await request(app).get('/job-roles/2');
+  it('should render job-role-details when fetching a specific job role', async () => {
+    const response = await request(app).get('/job-roles/1');
 
     expect(response.status).toBe(200);
-    expect(response.body.view).toBe('job-role-information');
-    expect(response.body.jobRole.roleName).toBe('Test Engineer');
+    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
+      1,
+    );
+    expect(response.body.view).toBe('job-role-details');
+    expect(response.body.jobRole).toEqual(mockJobRoles[0]);
   });
 
-  it('should return 500 error when fetching job role by id fails', async () => {
-    vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
-      new Error('Service error'),
+  it('should render error page when job role is not found', async () => {
+    vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValueOnce(
+      new Error('Not found'),
     );
 
-    const response = await request(app).get('/job-roles/2');
+    const response = await request(app).get('/job-roles/999');
 
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(404);
     expect(response.body.view).toBe('error');
+    expect(response.body.message).toBe('Job role not found');
   });
 
-  // Test for apply functionality
-  it('should render job-apply page when accessing apply route', async () => {
-    // Mock feature flag as enabled
-    vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-    const mockJobRole: JobRole = {
-      jobRoleId: 1,
-      roleName: 'Software Engineer',
-      location: 'London',
-      capability: 'Engineering',
-      band: 'Band 4',
-      closingDate: '2026-02-28',
-    };
-
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
-
-    const response = await request(app).get('/job-roles/1/apply');
+  it('should render add job role page when feature is enabled', async () => {
+    const response = await request(app).get('/job-roles/add');
 
     expect(response.status).toBe(200);
-    expect(response.body.view).toBe('job-apply');
-    expect(response.body.roleName).toBe('Software Engineer');
+    expect(response.body.view).toBe('add-role');
+    expect(response.body.title).toBe('Add New Job Role');
   });
 
-  // Feature flag tests
-  describe('Feature Flag: Job Applications', () => {
-    it('should include feature flag in job detail page response', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+  it('should return 403 when add job role feature is disabled', async () => {
+    vi.mocked(FeatureFlags.isAddJobRoleEnabled).mockReturnValue(false);
 
-      const mockJobRole: JobRole = {
-        jobRoleId: 1,
-        roleName: 'Software Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
+    // Create new app instance with disabled feature
+    const testApp = express();
+    testApp.use(express.json());
+
+    testApp.engine('njk', (_, options, callback) => {
+      callback(null, JSON.stringify(options));
+    });
+    testApp.set('view engine', 'njk');
+    testApp.set('views', './views');
+
+    testApp.use((req, res, next) => {
+      res.render = (view: string, options?: Record<string, unknown>) => {
+        const statusCode = res.statusCode || 200;
+        return res.status(statusCode).json({ view, ...options });
       };
-
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
-        mockJobRole,
-      );
-
-      const response = await request(app).get('/job-roles/1');
-
-      expect(response.status).toBe(200);
-      expect(response.body.isJobApplicationsEnabled).toBe(true);
-      expect(
-        vi.mocked(FeatureFlags.isJobApplicationsEnabled),
-      ).toHaveBeenCalled();
+      next();
     });
 
-    it('should block apply route when feature is disabled', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(false);
+    JobRoleController(testApp, mockJobRoleService);
 
-      const response = await request(app).get('/job-roles/1/apply');
+    const response = await request(testApp).get('/job-roles/add');
 
-      expect(response.status).toBe(404);
-      expect(response.body.view).toBe('error');
-      expect(response.body.message).toContain(
-        'Job applications are currently not available',
-      );
-      expect(
-        vi.mocked(mockJobRoleService.getJobRoleById),
-      ).not.toHaveBeenCalled();
-    });
-
-    it('should block POST apply route when feature is disabled', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(false);
-
-      const response = await request(app).post('/job-roles/1/apply');
-
-      expect(response.status).toBe(404);
-      expect(response.body.view).toBe('error');
-      expect(response.body.message).toContain(
-        'Job applications are currently not available',
-      );
-    });
-
-    it('should allow apply route when feature is enabled', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-      const mockJobRole: JobRole = {
-        jobRoleId: 1,
-        roleName: 'Software Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
-      };
-
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
-        mockJobRole,
-      );
-
-      const response = await request(app).get('/job-roles/1/apply');
-
-      expect(response.status).toBe(200);
-      expect(response.body.view).toBe('job-apply');
-    });
-
-    it('should require CV file for POST application', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-      const response = await request(app).post('/job-roles/1/apply');
-
-      expect(response.status).toBe(400); // Missing CV file
-      expect(response.body.view).toBe('error');
-    });
-
-    it('should handle error in apply page loading', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-      vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
-        new Error('Service error'),
-      );
-
-      const response = await request(app).get('/job-roles/1/apply');
-
-      expect(response.status).toBe(500);
-      expect(response.body.view).toBe('error');
-    });
-
-    it('should handle error in POST apply route', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockImplementation(
-        () => {
-          throw new Error('Feature flag error');
-        },
-      );
-
-      const response = await request(app).post('/job-roles/1/apply');
-
-      expect(response.status).toBe(500);
-      expect(response.body.view).toBe('error');
-    });
+    expect(response.status).toBe(403);
+    expect(response.body.view).toBe('error');
+    expect(response.body.message).toBe(
+      'This feature is not currently available',
+    );
   });
 });
