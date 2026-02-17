@@ -20,6 +20,30 @@ describe('JobRoleService', () => {
     vi.clearAllMocks();
   });
 
+  it('should wrap array response for backward compatibility', async () => {
+    const mockJobRoles: JobRole[] = [
+      {
+        jobRoleId: 1,
+        roleName: 'Software Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28',
+      },
+    ];
+
+    mockedGet.mockResolvedValue({
+      data: mockJobRoles, // legacy array response
+    });
+
+    const result = await service.getJobRoles();
+
+    expect(result).toEqual({
+      canDelete: false,
+      jobRoles: mockJobRoles,
+    });
+  });
+
   it('should fetch job roles successfully', async () => {
     const mockJobRoles: JobRole[] = [
       {

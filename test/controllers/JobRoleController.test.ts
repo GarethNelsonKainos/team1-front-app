@@ -83,7 +83,7 @@ describe('JobRoleController', () => {
       description: 'Ensures the quality of software products.',
       responsibilities: 'Test applications, report bugs, write test cases.',
       sharepointUrl: 'https://company.sharepoint.com/test-engineer',
-      numberOfOpenPositions: 2,
+      openPositions: 2,
     };
 
     vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({

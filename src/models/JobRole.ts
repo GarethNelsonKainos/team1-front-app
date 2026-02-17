@@ -10,6 +10,5 @@ export interface JobRole {
   jobSpecLink?: string;
   sharepointUrl?: string;
   openPositions?: number;
-  numberOfOpenPositions?: number;
   status?: string;
 }

@@ -1,8 +1,7 @@
 import type { Application, Request, Response } from 'express';
+import { API_BASE_URL } from '../config';
 import type { JobRoleService } from '../services/JobRoleService';
 import { formatTimestampToDateString } from '../utils/date-formatter';
-
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export default function JobRoleController(
   app: Application,
@@ -40,13 +39,15 @@ export default function JobRoleController(
       const { jobRole, canDelete } =
         await jobRoleService.getJobRoleById(idParam);
 
+      const normalizedJobRole = jobRole;
+
       const formattedClosingDate = formatTimestampToDateString(
         jobRole.closingDate,
       );
 
       res.render('job-role-information', {
         title: jobRole.roleName,
-        jobRole: jobRole,
+        jobRole: normalizedJobRole,
         formattedClosingDate: formattedClosingDate,
         canDelete,
         apiBaseUrl: API_BASE_URL,

@@ -1,7 +1,6 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { JobRole } from '../models/JobRole';
-
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export interface JobRoleListResponse {
   canDelete: boolean;
@@ -36,24 +35,12 @@ export class JobRoleService {
         `${API_BASE_URL}/api/job-roles/${id}`,
       );
       const data = response.data as unknown;
-      if (data && !('jobRole' in (data as object))) {
+      if (typeof data === 'object' && data !== null && !('jobRole' in data)) {
         return { canDelete: false, jobRole: data as JobRole };
       }
       return response.data;
     } catch (error: unknown) {
       console.error(`Error fetching job role with id ${id}:`, error);
-      throw error;
-    }
-  }
-
-  async deleteJobRole(id: string | number, authToken?: string): Promise<void> {
-    try {
-      const config = authToken
-        ? { headers: { Authorization: `Bearer ${authToken}` } }
-        : undefined;
-      await axios.delete(`${API_BASE_URL}/api/job-roles/${id}`, config);
-    } catch (error: unknown) {
-      console.error(`Error deleting job role with id ${id}:`, error);
       throw error;
     }
   }
