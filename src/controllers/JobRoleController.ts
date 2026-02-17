@@ -70,6 +70,12 @@ export default function JobRoleController(
     }
   });
 
+  app.get('/job-roles/add', (req, res) => {
+      res.render('addRole', { 
+          title: 'Add New Job Role' 
+      });
+  });
+
   app.get('/job-roles/:id/apply', async (req: Request, res: Response) => {
     try {
       // Check if job applications feature is enabled
