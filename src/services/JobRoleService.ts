@@ -1,9 +1,9 @@
 import axios from 'axios';
 import type { Band } from '../models/Band';
 import type { Capability } from '../models/Capability';
+import type { CreateJobRoleRequest } from '../models/CreateJobRoleRequest';
 import type { JobRole } from '../models/JobRole';
 import type { Location } from '../models/Location';
-import type { CreateJobRoleRequest } from '../models/CreateJobRoleRequest';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
