@@ -6,4 +6,15 @@
 /* Simple CSS - use CDN Tailwind in HTML instead */
 body {
   font-family: "Century Gothic", "Trebuchet MS", sans-serif;
+  background-image: url('/stories-background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 768px) {
+    body {
+        background-attachment: scroll; 
+        background-size: auto 100%; 
+    }
 }
