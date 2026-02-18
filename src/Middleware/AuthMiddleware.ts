@@ -28,12 +28,6 @@ export default function authenticateJWT(
   try {
     const decoded = jwt.verify(token, jwtSecret);
     res.locals.user = decoded;
-    
-    // Log user type for testing
-    const userRole = (decoded as { userRole?: number }).userRole;
-    const userType = userRole === 1 ? '👤 Applicant' : userRole === 2 ? '👑 Admin' : '❓ Unknown';
-    console.log(`✅ ${userType} signed in successfully`);
-    
     next();
   } catch (error) {
     console.log('Invalid token:', error);
