@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import type { Application } from 'express';
 import express from 'express';
 import request from 'supertest';
@@ -9,6 +10,15 @@ import * as FeatureFlags from '../../src/utils/FeatureFlags';
 
 // Mock external dependencies
 vi.mock('../../src/utils/FeatureFlags');
+vi.mock('../../src/Middleware/AuthMiddleware', () => ({
+  default: (req: unknown, res: unknown, next: () => void) => {
+    // Mock authenticated user
+    (res as { locals: { user: unknown } }).locals = {
+      user: { userId: 1, email: 'test@example.com' },
+    };
+    next();
+  },
+}));
 vi.mock('multer', () => {
   const mockMulter = vi.fn(() => ({
     single: vi.fn(
@@ -31,6 +41,17 @@ describe('JobRoleController', () => {
     app = express();
     app.set('view engine', 'njk');
     app.set('views', './views');
+
+    // Add middleware to parse request bodies and cookies
+    app.use(cookieParser());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json());
+
+    // Mock cookies by adding a token to all requests
+    app.use((req, res, next) => {
+      req.cookies = { token: 'valid-test-token' };
+      next();
+    });
 
     mockJobRoleService = {
       getJobRoles: vi.fn(),

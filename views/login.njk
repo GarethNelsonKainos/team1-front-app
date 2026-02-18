@@ -4,7 +4,14 @@
     <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8 mt-8">
         <h1 class="text-3xl font-bold mb-8 text-center" style="color: var(--brand-primary);">Sign In</h1>
         
-        <!-- Error message container -->
+        <!-- Server-side error message -->
+        {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+        
+        <!-- Client-side error message container -->
         <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             <span id="errorText"></span>
         </div>
@@ -133,48 +140,31 @@
             // Login function
             async function performLogin(email, password) {
                 try {
-                    // Call the backend API on port 3001
-                    const response = await fetch('http://localhost:3001/api/auth/login', {
+                    // Submit to front-end server which will handle the backend call and cookie
+                    const response = await fetch('/login', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
+                            'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: JSON.stringify({ email, password })
+                        body: new URLSearchParams({ email, password }),
+                        redirect: 'follow'
                     });
 
                     if (response.ok) {
-                        const data = await response.json();
+                        // Show success message
+                        hideMessages();
+                        successMessage.classList.remove('hidden');
                         
-                        // Store JWT token in session storage
-                        if (data.token) {
-                            sessionStorage.setItem('authToken', data.token);
-                            sessionStorage.setItem('userEmail', email);
-                            
-                            // Show success message
-                            hideMessages();
-                            successMessage.classList.remove('hidden');
-                            
-                            // Redirect to job roles page after a short delay
-                            setTimeout(() => {
-                                window.location.href = '/job-roles';
-                            }, 1500);
-                        } else {
-                            throw new Error('No token received');
-                        }
+                        // Redirect to job roles page after a short delay
+                        setTimeout(() => {
+                            window.location.href = '/job-roles';
+                        }, 1000);
                     } else {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || errorData.message || 'Login failed');
+                        throw new Error('Login failed');
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    
-                    // Handle network errors vs authentication errors
-                    if (error.message.includes('Failed to fetch') || 
-                        error.message.includes('NetworkError')) {
-                        showError('Unable to connect to server. Please try again later.');
-                    } else {
-                        showError('Invalid email or password. Please try again.');
-                    }
+                    showError('Invalid email or password. Please try again.');
                 }
             }
 
@@ -203,11 +193,6 @@
                     loadingState.classList.add('hidden');
                 }
             });
-
-            // Check if already logged in
-            if (sessionStorage.getItem('authToken')) {
-                window.location.href = '/';
-            }
         });
     </script>
 {% endblock %}

@@ -19,8 +19,12 @@ describe('Login Functionality', () => {
     expect(response.text).toContain('validateForm');
     expect(response.text).toContain('isValidEmail');
     expect(response.text).toContain('length < 8');
-    expect(response.text).toContain('sessionStorage');
-    expect(response.text).toContain('authToken');
-    expect(response.text).toContain('/api/auth/login');
+  });
+
+  it('should submit to /login POST endpoint', async () => {
+    const response = await request(app).get('/login');
+
+    expect(response.text).toContain("fetch('/login'");
+    expect(response.text).toContain("method: 'POST'");
   });
 });
