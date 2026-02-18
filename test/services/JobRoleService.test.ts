@@ -9,6 +9,7 @@ vi.mock('axios');
 describe('JobRoleService', () => {
   let mockedGet: Mock;
   const service = new JobRoleService();
+  const mockToken = 'test-token-123';
 
   beforeEach(() => {
     mockedGet = vi.mocked(axios).get as unknown as Mock;
@@ -32,11 +33,16 @@ describe('JobRoleService', () => {
 
     mockedGet.mockResolvedValue({ data: mockJobRoles });
 
-    const result = await service.getJobRoles();
+    const result = await service.getJobRoles(mockToken);
 
     expect(result).toEqual(mockJobRoles);
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: `Bearer ${mockToken}`,
+        }),
+      }),
     );
   });
 
@@ -44,13 +50,13 @@ describe('JobRoleService', () => {
     const error = new Error('Network error');
     mockedGet.mockRejectedValue(error);
 
-    await expect(service.getJobRoles()).rejects.toThrow();
+    await expect(service.getJobRoles(mockToken)).rejects.toThrow();
   });
 
   it('should return empty array when no job roles exist', async () => {
     mockedGet.mockResolvedValue({ data: [] });
 
-    const result = await service.getJobRoles();
+    const result = await service.getJobRoles(mockToken);
 
     expect(result).toEqual([]);
   });
@@ -67,11 +73,16 @@ describe('JobRoleService', () => {
 
     mockedGet.mockResolvedValue({ data: mockJobRole });
 
-    const result = await service.getJobRoleById('1');
+    const result = await service.getJobRoleById(1, mockToken);
 
     expect(result).toEqual(mockJobRole);
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles/1'),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: `Bearer ${mockToken}`,
+        }),
+      }),
     );
   });
 
@@ -79,6 +90,6 @@ describe('JobRoleService', () => {
     const error = new Error('Network error');
     mockedGet.mockRejectedValue(error);
 
-    await expect(service.getJobRoleById('1')).rejects.toThrow();
+    await expect(service.getJobRoleById(1, mockToken)).rejects.toThrow();
   });
 });

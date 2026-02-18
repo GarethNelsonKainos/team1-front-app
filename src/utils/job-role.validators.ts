@@ -6,14 +6,8 @@ export const createJobRoleSchema = z.object({
     .string()
     .min(3, 'Role name must be at least 3 characters')
     .max(100, 'Role name cannot exceed 100 characters'),
-  capabilityId: z
-    .number()
-    .int()
-    .positive('Please select a capability'),
-  bandId: z
-    .number()
-    .int()
-    .positive('Please select a band'),
+  capabilityId: z.number().int().positive('Please select a capability'),
+  bandId: z.number().int().positive('Please select a band'),
   description: z
     .string()
     .min(10, 'Summary must be at least 10 characters')

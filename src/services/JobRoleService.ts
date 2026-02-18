@@ -8,16 +8,28 @@ import type { Location } from '../models/Location';
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export class JobRoleService {
-  async getJobRoles(): Promise<JobRole[]> {
+  async getJobRoles(token: string): Promise<JobRole[]> {
     const { data } = await axios.get<JobRole[]>(
       `${API_BASE_URL}/api/job-roles`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      },
     );
     return data;
   }
 
-  async getJobRoleById(id: number): Promise<JobRole> {
+  async getJobRoleById(id: number, token: string): Promise<JobRole> {
     const { data } = await axios.get<JobRole>(
       `${API_BASE_URL}/api/job-roles/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      },
     );
     return data;
   }
