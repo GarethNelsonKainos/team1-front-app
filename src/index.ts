@@ -2,7 +2,7 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import authenticateRouter from './Router/AuthenicateRouter';
+import authenticateRouter from './Router/AuthenticateRouter';
 import JobRoleController from './controllers/JobRoleController';
 import { JobRoleService } from './services/JobRoleService';
 

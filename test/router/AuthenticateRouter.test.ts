@@ -1,6 +1,6 @@
 import type { Application } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import authenticateRouter from '../../src/Router/AuthenicateRouter';
+import authenticateRouter from '../../src/Router/AuthenticateRouter';
 import { AuthenticateController } from '../../src/controllers/AuthenticateController';
 
 vi.mock('../../src/controllers/AuthenticateController');

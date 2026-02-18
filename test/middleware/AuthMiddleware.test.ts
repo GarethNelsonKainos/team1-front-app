@@ -20,16 +20,16 @@ describe('AuthMiddleware', () => {
     sendMock = vi.fn();
     mockNext = vi.fn();
 
+    // statusMock needs to return the mockRes object for method chaining
+    statusMock = vi.fn().mockReturnThis();
+
     mockRes = {
       redirect: redirectMock,
       clearCookie: clearCookieMock,
+      status: statusMock,
       send: sendMock,
       locals: {},
     } as unknown as Response;
-
-    // statusMock needs to return the mockRes object for method chaining
-    statusMock = vi.fn().mockReturnValue(mockRes);
-    mockRes.status = statusMock;
 
     mockReq = {
       cookies: {},
