@@ -1,48 +1,58 @@
-import type { Application } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import authenticateRouter from '../../src/Router/AuthenticateRouter';
-import { AuthenticateController } from '../../src/controllers/AuthenticateController';
+import authenticationRouter from '../../src/Router/AuthenticateRouter';
+import type { AuthenticateController } from '../../src/controllers/AuthenticateController';
 
-vi.mock('../../src/controllers/AuthenticateController');
+// Mock the Router
+const mockRouter = {
+  get: vi.fn(),
+  post: vi.fn(),
+};
+
+vi.mock('express', () => ({
+  Router: vi.fn(() => mockRouter),
+}));
 
 describe('AuthenticateRouter', () => {
-  let mockApp: Partial<Application>;
-  let getMock: ReturnType<typeof vi.fn>;
-  let postMock: ReturnType<typeof vi.fn>;
+  let mockAuthController: Partial<AuthenticateController>;
 
   beforeEach(() => {
-    getMock = vi.fn();
-    postMock = vi.fn();
-
-    mockApp = {
-      get: getMock,
-      post: postMock,
-    } as unknown as Application;
+    mockAuthController = {
+      renderLogin: vi.fn(),
+      performLogout: vi.fn(),
+    } as unknown as AuthenticateController;
 
     vi.clearAllMocks();
   });
 
   it('should register GET /login route', () => {
-    authenticateRouter(mockApp as Application);
+    authenticationRouter(mockAuthController as AuthenticateController);
 
-    expect(getMock).toHaveBeenCalledWith('/login', expect.any(Function));
+    expect(mockRouter.get).toHaveBeenCalledWith('/login', expect.any(Function));
   });
 
   it('should register POST /login route', () => {
-    authenticateRouter(mockApp as Application);
+    authenticationRouter(mockAuthController as AuthenticateController);
 
-    expect(postMock).toHaveBeenCalledWith('/login', expect.any(Function));
+    expect(mockRouter.post).toHaveBeenCalledWith(
+      '/login',
+      expect.any(Function),
+    );
   });
 
   it('should register POST /logout route', () => {
-    authenticateRouter(mockApp as Application);
+    authenticationRouter(mockAuthController as AuthenticateController);
 
-    expect(postMock).toHaveBeenCalledWith('/logout', expect.any(Function));
+    expect(mockRouter.post).toHaveBeenCalledWith(
+      '/logout',
+      expect.any(Function),
+    );
   });
 
-  it('should create AuthenticateController instance', () => {
-    authenticateRouter(mockApp as Application);
+  it('should return the router instance', () => {
+    const result = authenticationRouter(
+      mockAuthController as AuthenticateController,
+    );
 
-    expect(AuthenticateController).toHaveBeenCalled();
+    expect(result).toBe(mockRouter);
   });
 });

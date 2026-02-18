@@ -1,9 +1,9 @@
-import axios from 'axios';
 import type { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthenticateController } from '../../src/controllers/AuthenticateController';
+import { LoginService } from '../../src/services/LoginService';
 
-vi.mock('axios');
+vi.mock('../../src/services/LoginService');
 
 describe('AuthenticateController', () => {
   let controller: AuthenticateController;
@@ -12,7 +12,7 @@ describe('AuthenticateController', () => {
   let cookieMock: ReturnType<typeof vi.fn>;
   let clearCookieMock: ReturnType<typeof vi.fn>;
   let redirectMock: ReturnType<typeof vi.fn>;
-  let jsonMock: ReturnType<typeof vi.fn>;
+  let renderMock: ReturnType<typeof vi.fn>;
   let statusMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('AuthenticateController', () => {
     cookieMock = vi.fn();
     clearCookieMock = vi.fn();
     redirectMock = vi.fn();
-    jsonMock = vi.fn();
+    renderMock = vi.fn();
     statusMock = vi.fn();
 
     mockReq = {
@@ -32,7 +32,7 @@ describe('AuthenticateController', () => {
       cookie: cookieMock,
       clearCookie: clearCookieMock,
       redirect: redirectMock,
-      json: jsonMock,
+      render: renderMock,
       status: statusMock,
     } as unknown as Response;
 
@@ -50,18 +50,13 @@ describe('AuthenticateController', () => {
         password: 'Password123!',
       };
 
-      vi.mocked(axios.post).mockResolvedValue({
-        data: { token: mockToken },
-      });
+      vi.mocked(LoginService.prototype.login).mockResolvedValue(mockToken);
 
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
-      expect(axios.post).toHaveBeenCalledWith(
-        'http://localhost:3001/api/auth/login',
-        {
-          email: 'test@example.com',
-          password: 'Password123!',
-        },
+      expect(LoginService.prototype.login).toHaveBeenCalledWith(
+        'test@example.com',
+        'Password123!',
       );
 
       expect(cookieMock).toHaveBeenCalledWith('token', mockToken, {
@@ -80,12 +75,13 @@ describe('AuthenticateController', () => {
         password: 'wrongpassword',
       };
 
-      vi.mocked(axios.post).mockRejectedValue(new Error('Unauthorized'));
+      vi.mocked(LoginService.prototype.login).mockRejectedValue(
+        new Error('Unauthorized'),
+      );
 
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
-      expect(statusMock).toHaveBeenCalledWith(401);
-      expect(jsonMock).toHaveBeenCalledWith({
+      expect(renderMock).toHaveBeenCalledWith('login', {
         error: 'Invalid Credentials',
       });
 
@@ -99,22 +95,39 @@ describe('AuthenticateController', () => {
         password: 'Password123!',
       };
 
-      vi.mocked(axios.post).mockRejectedValue(
+      vi.mocked(LoginService.prototype.login).mockRejectedValue(
         new Error('Network Error: ECONNREFUSED'),
       );
 
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
-      expect(statusMock).toHaveBeenCalledWith(401);
-      expect(jsonMock).toHaveBeenCalledWith({
+      expect(renderMock).toHaveBeenCalledWith('login', {
         error: 'Invalid Credentials',
       });
     });
+
+    it('should handle empty token response', async () => {
+      mockReq.body = {
+        email: 'test@example.com',
+        password: 'Password123!',
+      };
+
+      vi.mocked(LoginService.prototype.login).mockResolvedValue('');
+
+      await controller.renderLogin(mockReq as Request, mockRes as Response);
+
+      expect(renderMock).toHaveBeenCalledWith('login', {
+        error: 'Invalid Credentials',
+      });
+
+      expect(cookieMock).not.toHaveBeenCalled();
+      expect(redirectMock).not.toHaveBeenCalled();
+    });
   });
 
-  describe('renderLogout', () => {
+  describe('performLogout', () => {
     it('should clear cookie and redirect to login', async () => {
-      await controller.renderLogout(mockReq as Request, mockRes as Response);
+      await controller.performLogout(mockReq as Request, mockRes as Response);
 
       expect(clearCookieMock).toHaveBeenCalledWith('token');
       expect(redirectMock).toHaveBeenCalledWith('/login');

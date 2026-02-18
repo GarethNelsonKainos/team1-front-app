@@ -1,14 +1,18 @@
-import type { Application } from 'express';
-import { AuthenticateController } from '../controllers/AuthenticateController';
+import { Router } from 'express';
+import type { AuthenticateController } from '../controllers/AuthenticateController';
 
-export default function authenticateRouter(app: Application) {
-  const authController = new AuthenticateController();
+export default function authenticationRouter(
+  authController: AuthenticateController,
+) {
+  const router = Router();
 
-  app.get('/login', (req, res) => {
+  router.get('/login', (req, res) => {
     res.render('login', { title: 'Sign In - Kainos Job Roles' });
   });
 
-  app.post('/login', (req, res) => authController.renderLogin(req, res));
+  router.post('/login', (req, res) => authController.renderLogin(req, res));
 
-  app.post('/logout', (req, res) => authController.renderLogout(req, res));
+  router.post('/logout', (req, res) => authController.performLogout(req, res));
+
+  return router;
 }

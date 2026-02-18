@@ -12,12 +12,12 @@ describe('AuthMiddleware', () => {
   let redirectMock: ReturnType<typeof vi.fn>;
   let clearCookieMock: ReturnType<typeof vi.fn>;
   let statusMock: ReturnType<typeof vi.fn>;
-  let sendMock: ReturnType<typeof vi.fn>;
+  let renderMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     redirectMock = vi.fn();
     clearCookieMock = vi.fn();
-    sendMock = vi.fn();
+    renderMock = vi.fn();
     mockNext = vi.fn();
 
     // statusMock needs to return the mockRes object for method chaining
@@ -27,7 +27,7 @@ describe('AuthMiddleware', () => {
       redirect: redirectMock,
       clearCookie: clearCookieMock,
       status: statusMock,
-      send: sendMock,
+      render: renderMock,
       locals: {},
     } as unknown as Response;
 
@@ -152,9 +152,9 @@ describe('AuthMiddleware', () => {
     );
 
     expect(statusMock).toHaveBeenCalledWith(500);
-    expect(sendMock).toHaveBeenCalledWith(
-      'Server configuration error: JWT secret is not configured.',
-    );
+    expect(renderMock).toHaveBeenCalledWith('error', {
+      error: 'Internal server error',
+    });
     expect(mockNext).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
 

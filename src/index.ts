@@ -2,7 +2,8 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import authenticateRouter from './Router/AuthenticateRouter';
+import authenticationRouter from './Router/AuthenticateRouter';
+import { AuthenticateController } from './controllers/AuthenticateController';
 import JobRoleController from './controllers/JobRoleController';
 import { JobRoleService } from './services/JobRoleService';
 
@@ -26,7 +27,8 @@ app.set('view engine', 'njk');
 app.use(express.static('public'));
 
 // Auth routes
-authenticateRouter(app);
+const authenticationController = new AuthenticateController();
+app.use(authenticationRouter(authenticationController));
 
 // Routes
 app.get('/', (req, res) => {

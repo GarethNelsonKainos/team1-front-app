@@ -10,24 +10,24 @@
 </head>
 <body class="bg-gray-100">
     <header class="bg-white p-4 flex justify-between items-center">
-        <img src="/KainosLogo.png" alt="Kainos" class="logo" style="height: 50px; width: auto;">
+        <img src="/KainosLogo.png" alt="Kainos" class="logo header-logo">
         
         <!-- Sign In/Out button container -->
         <div id="authContainer">
             {% if user %}
                 <!-- User menu (shown when logged in) -->
                 <div class="flex items-center gap-4">
-                    <span class="text-sm" style="color: var(--brand-primary);">{{ user.email }}</span>
-                    <form method="POST" action="/logout" style="margin: 0;">
-                        <button type="submit" class="sign-out-button px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary); cursor: pointer;">
+                    <span class="text-sm user-email">{{ user.email }}</span>
+                    <form method="POST" action="/logout" class="logout-form">
+                        <button type="submit" class="sign-out-button px-4 py-2 bg-white rounded hover:bg-gray-100 border auth-button">
                             Sign Out
                         </button>
                     </form>
                 </div>
             {% else %}
                 <!-- Sign In button (shown when not logged in) -->
-                <a href="/login" class="sign-in-button flex items-center gap-2 px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary);">
-                    <img src="/SignInIcon.png" alt="" class="sign-in-icon" style="height: 25px;">
+                <a href="/login" class="sign-in-button flex items-center gap-2 px-4 py-2 bg-white rounded hover:bg-gray-100 border auth-button">
+                    <img src="/SignInIcon.png" alt="" class="sign-in-icon">
                     <span>Sign In</span>
                 </a>
             {% endif %}
@@ -41,7 +41,7 @@
     <footer class="bg-gray-800 text-white p-8">
         <div class="container mx-auto flex justify-between items-start gap-8">
             <div class="footer-logo">
-                <img src="/KainosLogo.png" alt="Kainos" style="height: 50px; width: auto; filter: brightness(0) invert(1);">
+                <img src="/KainosLogo.png" alt="Kainos">
             </div>
             <div class="footer-contact">
                 <h3 class="font-bold mb-2">Contact Us</h3>
