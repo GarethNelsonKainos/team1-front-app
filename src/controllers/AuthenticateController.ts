@@ -16,8 +16,7 @@ export class AuthenticateController {
 
       // Validate token exists and is a non-empty string
       if (typeof token !== 'string' || token.length === 0) {
-        return res.status(401).render('login', {
-          title: 'Sign In - Kainos Job Roles',
+        return res.status(401).json({
           error: 'Invalid Credentials',
         });
       }
@@ -31,8 +30,7 @@ export class AuthenticateController {
 
       res.redirect('/job-roles');
     } catch (error) {
-      res.status(401).render('login', {
-        title: 'Sign In - Kainos Job Roles',
+      return res.status(401).json({
         error: 'Invalid Credentials',
       });
     }

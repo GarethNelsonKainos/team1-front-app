@@ -12,7 +12,7 @@ describe('AuthenticateController', () => {
   let cookieMock: ReturnType<typeof vi.fn>;
   let clearCookieMock: ReturnType<typeof vi.fn>;
   let redirectMock: ReturnType<typeof vi.fn>;
-  let renderMock: ReturnType<typeof vi.fn>;
+  let jsonMock: ReturnType<typeof vi.fn>;
   let statusMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('AuthenticateController', () => {
     cookieMock = vi.fn();
     clearCookieMock = vi.fn();
     redirectMock = vi.fn();
-    renderMock = vi.fn();
+    jsonMock = vi.fn();
     statusMock = vi.fn();
 
     mockReq = {
@@ -32,7 +32,7 @@ describe('AuthenticateController', () => {
       cookie: cookieMock,
       clearCookie: clearCookieMock,
       redirect: redirectMock,
-      render: renderMock,
+      json: jsonMock,
       status: statusMock,
     } as unknown as Response;
 
@@ -85,8 +85,7 @@ describe('AuthenticateController', () => {
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(401);
-      expect(renderMock).toHaveBeenCalledWith('login', {
-        title: 'Sign In - Kainos Job Roles',
+      expect(jsonMock).toHaveBeenCalledWith({
         error: 'Invalid Credentials',
       });
 
@@ -107,8 +106,7 @@ describe('AuthenticateController', () => {
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
       expect(statusMock).toHaveBeenCalledWith(401);
-      expect(renderMock).toHaveBeenCalledWith('login', {
-        title: 'Sign In - Kainos Job Roles',
+      expect(jsonMock).toHaveBeenCalledWith({
         error: 'Invalid Credentials',
       });
     });

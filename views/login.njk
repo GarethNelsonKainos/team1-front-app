@@ -4,13 +4,6 @@
     <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-8 mt-8">
         <h1 class="text-3xl font-bold mb-8 text-center" style="color: var(--brand-primary);">Sign In</h1>
         
-        <!-- Server-side error message -->
-        {% if error %}
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <span>{{ error }}</span>
-        </div>
-        {% endif %}
-        
         <!-- Client-side error message container -->
         <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             <span id="errorText"></span>
@@ -160,11 +153,13 @@
                             window.location.href = '/job-roles';
                         }, 1000);
                     } else {
-                        throw new Error('Login failed');
+                        // Parse error from server
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Login failed');
                     }
                 } catch (error) {
                     console.error('Login error:', error);
-                    showError('Invalid email or password. Please try again.');
+                    showError(error.message || 'Invalid email or password. Please try again.');
                 }
             }
 
