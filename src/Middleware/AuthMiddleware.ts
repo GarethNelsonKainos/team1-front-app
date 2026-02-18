@@ -15,7 +15,9 @@ export default function authenticateJWT(
 
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
-    res.redirect('/login');
+    res
+      .status(500)
+      .send('Server configuration error: JWT secret is not configured.');
     return;
   }
 

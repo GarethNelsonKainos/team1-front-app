@@ -11,21 +11,29 @@ describe('AuthMiddleware', () => {
   let mockNext: ReturnType<typeof vi.fn>;
   let redirectMock: ReturnType<typeof vi.fn>;
   let clearCookieMock: ReturnType<typeof vi.fn>;
+  let statusMock: ReturnType<typeof vi.fn>;
+  let sendMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     redirectMock = vi.fn();
     clearCookieMock = vi.fn();
+    sendMock = vi.fn();
     mockNext = vi.fn();
-
-    mockReq = {
-      cookies: {},
-    };
 
     mockRes = {
       redirect: redirectMock,
       clearCookie: clearCookieMock,
+      send: sendMock,
       locals: {},
     } as unknown as Response;
+
+    // statusMock needs to return the mockRes object for method chaining
+    statusMock = vi.fn().mockReturnValue(mockRes);
+    mockRes.status = statusMock;
+
+    mockReq = {
+      cookies: {},
+    };
 
     vi.clearAllMocks();
     process.env.JWT_SECRET = 'test-secret';
@@ -128,5 +136,29 @@ describe('AuthMiddleware', () => {
     expect(clearCookieMock).toHaveBeenCalledWith('token');
     expect(redirectMock).toHaveBeenCalledWith('/login');
     expect(mockNext).not.toHaveBeenCalled();
+  });
+
+  it('should return 500 error when JWT_SECRET is not configured', () => {
+    const originalJwtSecret = process.env.JWT_SECRET;
+    // @ts-ignore - Setting to empty string to simulate missing env var (satisfies linter)
+    process.env.JWT_SECRET = '';
+
+    mockReq.cookies = { token: 'some-token' };
+
+    authenticateJWT(
+      mockReq as Request,
+      mockRes as Response,
+      mockNext as NextFunction,
+    );
+
+    expect(statusMock).toHaveBeenCalledWith(500);
+    expect(sendMock).toHaveBeenCalledWith(
+      'Server configuration error: JWT secret is not configured.',
+    );
+    expect(mockNext).not.toHaveBeenCalled();
+    expect(redirectMock).not.toHaveBeenCalled();
+
+    // Restore original value
+    process.env.JWT_SECRET = originalJwtSecret;
   });
 });
