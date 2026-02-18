@@ -14,10 +14,13 @@ export class AuthenticateController {
       });
       const { token } = response.data;
 
-      console.log(
-        'Login successful, token received:',
-        `${token.substring(0, 20)}...`,
-      );
+      // Validate token exists and is a non-empty string
+      if (typeof token !== 'string' || token.length === 0) {
+        return res.status(401).render('login', {
+          title: 'Sign In - Kainos Job Roles',
+          error: 'Invalid Credentials',
+        });
+      }
 
       res.cookie('token', token, {
         httpOnly: true,
@@ -26,7 +29,6 @@ export class AuthenticateController {
         sameSite: 'lax',
       });
 
-      console.log('Cookie set, redirecting to /job-roles');
       res.redirect('/job-roles');
     } catch (error) {
       res.status(401).render('login', {

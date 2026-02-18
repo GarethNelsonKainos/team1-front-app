@@ -34,10 +34,10 @@ describe('AuthenticateRouter', () => {
     expect(postMock).toHaveBeenCalledWith('/login', expect.any(Function));
   });
 
-  it('should register GET /logout route', () => {
+  it('should register POST /logout route', () => {
     authenticateRouter(mockApp as Application);
 
-    expect(getMock).toHaveBeenCalledWith('/logout', expect.any(Function));
+    expect(postMock).toHaveBeenCalledWith('/logout', expect.any(Function));
   });
 
   it('should create AuthenticateController instance', () => {

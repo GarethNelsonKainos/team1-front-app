@@ -10,5 +10,5 @@ export default function authenticateRouter(app: Application) {
 
   app.post('/login', (req, res) => authController.renderLogin(req, res));
 
-  app.get('/logout', (req, res) => authController.renderLogout(req, res));
+  app.post('/logout', (req, res) => authController.renderLogout(req, res));
 }

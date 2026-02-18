@@ -18,9 +18,11 @@
                 <!-- User menu (shown when logged in) -->
                 <div class="flex items-center gap-4">
                     <span class="text-sm" style="color: var(--brand-primary);">{{ user.email }}</span>
-                    <a href="/logout" class="sign-out-button px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary);">
-                        Sign Out
-                    </a>
+                    <form method="POST" action="/logout" style="margin: 0;">
+                        <button type="submit" class="sign-out-button px-4 py-2 bg-white rounded hover:bg-gray-100 border" style="color: var(--brand-primary); border-color: var(--brand-primary); cursor: pointer;">
+                            Sign Out
+                        </button>
+                    </form>
                 </div>
             {% else %}
                 <!-- Sign In button (shown when not logged in) -->
