@@ -13,6 +13,7 @@ describe('AuthenticateController', () => {
   let clearCookieMock: ReturnType<typeof vi.fn>;
   let redirectMock: ReturnType<typeof vi.fn>;
   let renderMock: ReturnType<typeof vi.fn>;
+  let statusMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     controller = new AuthenticateController();
@@ -21,6 +22,7 @@ describe('AuthenticateController', () => {
     clearCookieMock = vi.fn();
     redirectMock = vi.fn();
     renderMock = vi.fn();
+    statusMock = vi.fn();
 
     mockReq = {
       body: {},
@@ -31,7 +33,11 @@ describe('AuthenticateController', () => {
       clearCookie: clearCookieMock,
       redirect: redirectMock,
       render: renderMock,
+      status: statusMock,
     } as unknown as Response;
+
+    // Make status return the response object for chaining
+    statusMock.mockReturnValue(mockRes);
 
     vi.clearAllMocks();
   });
@@ -78,8 +84,9 @@ describe('AuthenticateController', () => {
 
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
+      expect(statusMock).toHaveBeenCalledWith(401);
       expect(renderMock).toHaveBeenCalledWith('login', {
-        title: 'Sign In - kainos job roles',
+        title: 'Sign In - Kainos Job Roles',
         error: 'Invalid Credentials',
       });
 
@@ -99,8 +106,9 @@ describe('AuthenticateController', () => {
 
       await controller.renderLogin(mockReq as Request, mockRes as Response);
 
+      expect(statusMock).toHaveBeenCalledWith(401);
       expect(renderMock).toHaveBeenCalledWith('login', {
-        title: 'Sign In - kainos job roles',
+        title: 'Sign In - Kainos Job Roles',
         error: 'Invalid Credentials',
       });
     });
