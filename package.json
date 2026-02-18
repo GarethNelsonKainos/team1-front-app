@@ -35,7 +35,8 @@
     "express-session": "^1.19.0",
     "form-data": "^4.0.5",
     "multer": "^2.0.2",
-    "nunjucks": "^3.2.4"
+    "nunjucks": "^3.2.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",

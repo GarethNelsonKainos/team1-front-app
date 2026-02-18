@@ -1,3 +1,5 @@
+import { createJobRoleSchema } from '../utils/validators.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     // TODO: Add authorization check here when auth module is ready
     // Check if user is Admin before allowing access to this page
