@@ -4,7 +4,17 @@
 <div class="container mx-auto max-w-md mt-8 p-6 bg-white rounded shadow">
     <h2 class="text-2xl mb-4">Apply for {{ roleName }}</h2>
     
-    <form action="/job-roles/{{ jobRoleId }}/apply" method="POST" enctype="multipart/form-data" class="space-y-4">
+    <!-- Error message container -->
+    <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <span id="errorText"></span>
+    </div>
+    
+    <!-- Success message container -->
+    <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <span id="successText">Application submitted successfully! Redirecting...</span>
+    </div>
+    
+    <form id="applicationForm" method="POST" enctype="multipart/form-data" class="space-y-4">
         <div>
             <label for="cv" class="block mb-2 font-medium">CV Upload (Required)</label>
             <input type="file" id="cv" name="cv" accept=".pdf" required class="w-full p-2 border border-gray-300 rounded">
@@ -13,8 +23,106 @@
         
         <div class="flex gap-4">
             <a href="/job-roles/{{ jobRoleId }}" class="btn-secondary">Cancel</a>
-            <button type="submit" class="btn-primary">Submit Application</button>
+            <button type="submit" id="submitButton" class="btn-primary">Submit Application</button>
         </div>
     </form>
+    
+    <!-- Loading state -->
+    <div id="loadingState" class="hidden text-center mt-4">
+        <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+        <span class="ml-2 text-blue-600">Submitting application...</span>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('applicationForm');
+    const submitButton = document.getElementById('submitButton');
+    const loadingState = document.getElementById('loadingState');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const errorText = document.getElementById('errorText');
+
+    // Hide messages function
+    function hideMessages() {
+        errorMessage.classList.add('hidden');
+        successMessage.classList.add('hidden');
+    }
+
+    // Show error function
+    function showError(message) {
+        hideMessages();
+        errorText.textContent = message;
+        errorMessage.classList.remove('hidden');
+        // Hide loading state
+        submitButton.disabled = false;
+        form.classList.remove('hidden');
+        loadingState.classList.add('hidden');
+    }
+
+    // Check if user is logged in
+    const authToken = sessionStorage.getItem('authToken');
+    if (!authToken) {
+        window.location.href = '/login';
+        return;
+    }
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const cvFile = document.getElementById('cv').files[0];
+        if (!cvFile) {
+            showError('Please select a CV file to upload');
+            return;
+        }
+
+        // Show loading state
+        hideMessages();
+        submitButton.disabled = true;
+        form.classList.add('hidden');
+        loadingState.classList.remove('hidden');
+
+        try {
+            // Create FormData with the CV file and job role ID
+            const formData = new FormData();
+            formData.append('cv', cvFile);
+            formData.append('jobRoleId', '{{ jobRoleId }}');
+
+            // Submit to backend API with auth token
+            const response = await fetch('http://localhost:3001/api/applications', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                // Show success message
+                hideMessages();
+                successMessage.classList.remove('hidden');
+                
+                // Redirect to success page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/application-success';
+                }, 1500);
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Application submission failed');
+            }
+        } catch (error) {
+            console.error('Application submission error:', error);
+            
+            if (error.message.includes('Failed to fetch') || 
+                error.message.includes('NetworkError')) {
+                showError('Unable to connect to server. Please try again later.');
+            } else {
+                showError(error.message || 'Application submission failed. Please try again.');
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
