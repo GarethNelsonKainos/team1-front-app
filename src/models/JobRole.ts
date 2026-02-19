@@ -1,6 +1,6 @@
 export enum JobRoleStatus {
-  Open = 1,
-  Closed = 2,
+  Open = 'Open',
+  Closed = 'Closed',
 }
 
 export interface JobRole {
@@ -14,5 +14,5 @@ export interface JobRole {
   responsibilities?: string;
   jobSpecLink?: string;
   openPositions?: number;
-  status?: number;
+  status?: string;
 }
