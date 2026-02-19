@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
 import multer from 'multer';
-import authenticateJWT from '../Middleware/AuthMiddleware';
+import authenticateJWT from '../middleware/AuthMiddleware';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';

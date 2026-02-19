@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import authenticationRouter from '../../src/Router/AuthenticateRouter';
+import authenticationRouter from '../../src/router/AuthenticateRouter';
 import type { AuthenticateController } from '../../src/controllers/AuthenticateController';
 
 // Mock the Router

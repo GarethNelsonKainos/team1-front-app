@@ -1,6 +1,6 @@
 import { type Request, type Response, Router } from 'express';
 import type ApplicationController from '../controllers/ApplicationController';
-import upload from '../Middleware/UploadMiddleware';
+import upload from '../middleware/UploadMiddleware';
 
 export default function applicationRouter(
   applicationController: ApplicationController,

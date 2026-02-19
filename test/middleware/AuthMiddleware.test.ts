@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import authenticateJWT from '../../src/Middleware/AuthMiddleware';
+import authenticateJWT from '../../src/middleware/AuthMiddleware';
 
 vi.mock('jsonwebtoken');
 vi.mock('axios');
