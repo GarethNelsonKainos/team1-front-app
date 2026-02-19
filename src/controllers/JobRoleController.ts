@@ -60,12 +60,12 @@ export default function JobRoleController(
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         const formattedClosingDate = formatTimestampToDateString(
-          jobRole.closingDate,
+          jobRole.jobRole.closingDate,
         );
 
         res.render('job-role-information', {
-          title: jobRole.roleName,
-          jobRole: normalizedJobRole,
+          title: jobRole.jobRole.roleName,
+          jobRole: jobRole.jobRole,
           formattedClosingDate: formattedClosingDate,
           canDelete: true,
         apiBaseUrl: API_BASE_URL,
@@ -173,9 +173,9 @@ export default function JobRoleController(
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         res.render('job-apply', {
-          title: `Apply for ${jobRole.roleName}`,
-          jobRoleId: jobRole.jobRoleId,
-          roleName: jobRole.roleName,
+          title: `Apply for ${jobRole.jobRole.roleName}`,
+          jobRoleId: jobRole.jobRole.jobRoleId,
+          roleName: jobRole.jobRole.roleName,
         });
       } catch (error) {
         console.error('Error in JobRoleController:', error);
