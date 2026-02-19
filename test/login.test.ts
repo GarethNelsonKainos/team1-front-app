@@ -7,20 +7,27 @@ describe('Login Functionality', () => {
     const response = await request(app).get('/login');
 
     expect(response.status).toBe(200);
-    expect(response.text).toContain('id="loginForm"');
+    expect(response.text).toContain('action="/login"');
+    expect(response.text).toContain('method="POST"');
     expect(response.text).toContain('type="email"');
     expect(response.text).toContain('type="password"');
     expect(response.text).toContain('Sign In');
   });
 
-  it('should include form validation logic', async () => {
+  it('should include proper form structure', async () => {
     const response = await request(app).get('/login');
 
-    expect(response.text).toContain('validateForm');
-    expect(response.text).toContain('isValidEmail');
-    expect(response.text).toContain('length < 8');
-    expect(response.text).toContain('sessionStorage');
-    expect(response.text).toContain('authToken');
-    expect(response.text).toContain('/api/auth/login');
+    expect(response.text).toContain('name="email"');
+    expect(response.text).toContain('name="password"');
+    expect(response.text).toContain('type="submit"');
+  });
+
+  it('should submit to /login POST endpoint via form action', async () => {
+    const response = await request(app).get('/login');
+
+    expect(response.text).toContain('action="/login"');
+    expect(response.text).toContain('method="POST"');
+    // Ensure no JavaScript fetch is present
+    expect(response.text).not.toContain("fetch('/login'");
   });
 });

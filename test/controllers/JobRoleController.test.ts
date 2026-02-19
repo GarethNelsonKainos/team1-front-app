@@ -1,5 +1,7 @@
+import cookieParser from 'cookie-parser';
 import type { Application } from 'express';
 import express from 'express';
+import multer from 'multer';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import JobRoleController from '../../src/controllers/JobRoleController';
@@ -9,15 +11,29 @@ import * as FeatureFlags from '../../src/utils/FeatureFlags';
 
 // Mock external dependencies
 vi.mock('../../src/utils/FeatureFlags');
+vi.mock('../../src/utils/date-formatter', () => ({
+  formatTimestampToDateString: vi.fn((date: string) => date),
+}));
+vi.mock('../../src/middleware/AuthMiddleware', () => ({
+  default: (req: unknown, res: unknown, next: () => void) => {
+    // Mock authenticated user
+    (res as { locals: { user: unknown } }).locals = {
+      user: { userId: 1, email: 'test@example.com' },
+    };
+    next();
+  },
+}));
 vi.mock('multer', () => {
   const mockMulter = vi.fn(() => ({
     single: vi.fn(
       () => (req: unknown, res: unknown, next: () => void) => next(),
     ),
   }));
-  mockMulter.memoryStorage = vi.fn();
+
   return {
-    default: mockMulter,
+    default: Object.assign(mockMulter, {
+      memoryStorage: vi.fn(),
+    }),
   };
 });
 vi.mock('axios');
@@ -28,9 +44,29 @@ describe('JobRoleController', () => {
   let mockJobRoleService: JobRoleService;
 
   beforeEach(() => {
+    // Reset all mocks
+    vi.clearAllMocks();
+
+    // Set up environment variables
+    process.env.API_BASE_URL = 'http://localhost:3001';
+
+    // Initialize FeatureFlags mock with default values
+    vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+
     app = express();
     app.set('view engine', 'njk');
     app.set('views', './views');
+
+    // Add middleware to parse request bodies and cookies
+    app.use(cookieParser());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.json());
+
+    // Mock cookies by adding a token to all requests
+    app.use((req, res, next) => {
+      req.cookies = { token: 'valid-test-token' };
+      next();
+    });
 
     mockJobRoleService = {
       getJobRoles: vi.fn(),

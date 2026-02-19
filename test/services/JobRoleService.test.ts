@@ -36,7 +36,7 @@ describe('JobRoleService', () => {
 
     expect(result).toEqual(mockJobRoles);
     expect(mockedGet).toHaveBeenCalledWith(
-      expect.stringContaining('/api/job-roles'),
+      'http://localhost:3001/api/job-roles',
     );
   });
 
@@ -71,7 +71,7 @@ describe('JobRoleService', () => {
 
     expect(result).toEqual(mockJobRole);
     expect(mockedGet).toHaveBeenCalledWith(
-      expect.stringContaining('/api/job-roles/1'),
+      'http://localhost:3001/api/job-roles/1',
     );
   });
 
