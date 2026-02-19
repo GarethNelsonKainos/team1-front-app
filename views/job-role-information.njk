@@ -50,72 +50,10 @@
          class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded font-semibold transition-colors">
         Back to Job Roles
       </a>
-      
-      {% if isJobApplicationsEnabled and jobRole.status === "Open" and jobRole.openPositions > 0 %}
-        <!-- Apply button container - will be updated by JavaScript -->
-        <div id="applyButtonContainer">
-          <div class="text-gray-500 px-6 py-2">
-            Loading application status...
-          </div>
-        </div>
-      {% elif not isJobApplicationsEnabled %}
-        <div class="text-gray-500 px-6 py-2">
-          Job applications are currently unavailable
-        </div>
-      {% elif jobRole.status !== "Open" or jobRole.openPositions <= 0 %}
-        <div class="text-gray-500 px-6 py-2">
-          This position is no longer available
-        </div>
-      {% endif %}
+
+      <div class="px-6 py-2">
+        {{ jobStatusMessage | safe }}
+      </div>
     </div>
   </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const applyButtonContainer = document.getElementById('applyButtonContainer');
-      
-      if (!applyButtonContainer) return;
-
-      const jobRoleId = {{ jobRole.jobRoleId }};
-      const token = sessionStorage.getItem('authToken');
-
-      if (!token) {
-        applyButtonContainer.innerHTML = `
-          <div class="text-gray-500 px-6 py-2">
-            <a href="/login" class="text-blue-700 underline">Sign in</a> to apply
-          </div>
-        `;
-        return;
-      }
-
-      // Check if user already applied
-      fetch(`http://localhost:3001/api/applications/status/${jobRoleId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      .then(r => r.json())
-      .then(data => {
-        if (data.hasApplied) {
-          applyButtonContainer.innerHTML = `
-            <div class="bg-gray-100 text-gray-600 px-6 py-2 rounded">
-              ✓ Already Applied
-            </div>
-          `;
-        } else {
-          applyButtonContainer.innerHTML = `
-            <a href="/job-roles/${jobRoleId}/apply" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold">
-              Apply Now
-            </a>
-          `;
-        }
-      })
-      .catch(() => {
-        // Show apply button on error
-        applyButtonContainer.innerHTML = `
-          <a href="/job-roles/${jobRoleId}/apply" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold">
-            Apply Now
-          </a>
-        `;
-      });
-    });
-  </script>
 {% endblock %}
