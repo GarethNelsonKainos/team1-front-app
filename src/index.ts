@@ -2,7 +2,6 @@ import 'dotenv/config';
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import applicationRouter from './Router/ApplicationRouter';
 import authenticationRouter from './Router/AuthenticateRouter';
 import ApplicationController from './controllers/ApplicationController';
 import { AuthenticateController } from './controllers/AuthenticateController';
@@ -65,8 +64,6 @@ const applicationController = new ApplicationController(
 );
 
 JobRoleController(app, jobRoleService);
-
-app.use(applicationRouter(applicationController));
 
 // Start server
 app.listen(PORT, () => {
