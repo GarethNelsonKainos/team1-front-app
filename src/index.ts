@@ -3,6 +3,9 @@ import express from 'express';
 import nunjucks from 'nunjucks';
 import JobRoleController from './controllers/JobRoleController';
 import { JobRoleService } from './services/JobRoleService';
+import ApplicationController from './controllers/ApplicationController';
+import ApplicationService from './services/ApplicationService';
+import applicationRouter from './router/ApplicationRouter';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,19 +38,16 @@ app.get('/login', (req, res) => {
   });
 });
 
-app.get('/application-success', (req, res) => {
-  res.render('application-success', {
-    title: 'Application Submitted - Kainos Job Roles',
-  });
-});
-
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
 const jobRoleService = new JobRoleService();
+const applicationController = new ApplicationController(new ApplicationService());
 
 JobRoleController(app, jobRoleService);
+
+app.use(applicationRouter(applicationController));
 
 // Start server
 app.listen(PORT, () => {
