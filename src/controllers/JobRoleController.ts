@@ -8,6 +8,7 @@ export default function JobRoleController(
 ) {
   app.get('/job-roles', async (req, res) => {
     try {
+      // TODO: Add authorization middleware check when auth module is ready
       const jobRoles = await jobRoleService.getJobRoles();
       res.render('job-role-list', {
         jobRoles,
@@ -38,6 +39,7 @@ export default function JobRoleController(
 
   app.get('/job-roles/:id', async (req, res) => {
     try {
+      // TODO: Add authorization middleware check when auth module is ready
       const jobRole = await jobRoleService.getJobRoleById(
         Number(req.params.id),
       );
@@ -50,7 +52,7 @@ export default function JobRoleController(
     }
   });
 
-  // API endpoints for AJAX calls from frontend
+  // API endpoints for axios calls from frontend
   app.get('/api/bands', async (req, res) => {
     try {
       // TODO: Get token from session/auth when auth module is ready
