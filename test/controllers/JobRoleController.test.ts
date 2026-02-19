@@ -1,6 +1,7 @@
 import cookieParser from 'cookie-parser';
 import type { Application } from 'express';
 import express from 'express';
+import multer from 'multer';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import JobRoleController from '../../src/controllers/JobRoleController';
@@ -25,9 +26,11 @@ vi.mock('multer', () => {
       () => (req: unknown, res: unknown, next: () => void) => next(),
     ),
   }));
-  mockMulter.memoryStorage = vi.fn();
+
   return {
-    default: mockMulter,
+    default: Object.assign(mockMulter, {
+      memoryStorage: vi.fn(),
+    }),
   };
 });
 vi.mock('axios');
