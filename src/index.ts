@@ -1,7 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
 import nunjucks from 'nunjucks';
+import ApplicationController from './controllers/ApplicationController';
 import JobRoleController from './controllers/JobRoleController';
+import applicationRouter from './router/ApplicationRouter';
+import ApplicationService from './services/ApplicationService';
 import { JobRoleService } from './services/JobRoleService';
 
 const app = express();
@@ -35,19 +38,18 @@ app.get('/login', (req, res) => {
   });
 });
 
-app.get('/application-success', (req, res) => {
-  res.render('application-success', {
-    title: 'Application Submitted - Kainos Job Roles',
-  });
-});
-
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
 
 const jobRoleService = new JobRoleService();
+const applicationController = new ApplicationController(
+  new ApplicationService(),
+);
 
 JobRoleController(app, jobRoleService);
+
+app.use(applicationRouter(applicationController));
 
 // Start server
 app.listen(PORT, () => {

@@ -23,10 +23,16 @@ describe('FeatureFlags', () => {
   });
 
   describe('getAllFlags', () => {
-    it('should return all feature flag states', () => {
+    it('should return all feature flag states when enabled', () => {
       process.env.ENABLE_JOB_APPLICATIONS = 'true';
       const result = getAllFlags();
       expect(result).toEqual({ jobApplications: true });
+    });
+
+    it('should return all feature flag states when disabled', () => {
+      process.env.ENABLE_JOB_APPLICATIONS = 'false';
+      const result = getAllFlags();
+      expect(result).toEqual({ jobApplications: false });
     });
   });
 });

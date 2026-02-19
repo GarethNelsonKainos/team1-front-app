@@ -81,9 +81,15 @@ export default function JobRoleController(
         return;
       }
 
-      const idParam = Array.isArray(req.params.id)
-        ? req.params.id[0]
-        : req.params.id;
+      if (!req.params.id) {
+        res.status(400).render('error', {
+          title: 'Invalid Request',
+          message: 'Job role ID is required to apply.',
+        });
+        return;
+      }
+
+      const idParam = Number.parseInt(req.params.id as string, 10);
 
       const jobRole = await jobRoleService.getJobRoleById(idParam);
 
@@ -100,86 +106,4 @@ export default function JobRoleController(
       });
     }
   });
-
-  app.post(
-    '/job-roles/:id/apply',
-    upload.single('cv'),
-    async (req: Request, res: Response) => {
-      try {
-        // Check if job applications feature is enabled
-        if (!isJobApplicationsEnabled()) {
-          res.status(404).render('error', {
-            title: 'Feature Not Available',
-            message: 'Job applications are currently not available.',
-          });
-          return;
-        }
-
-        // Validate CV upload
-        if (!req.file) {
-          res.status(400).render('error', {
-            title: 'Missing CV',
-            message: 'Please upload your CV to complete the application.',
-          });
-          return;
-        }
-
-        const jobRoleId = req.params.id;
-
-        // Get auth token from cookies or authorization header
-        const authToken =
-          req.cookies?.authToken ||
-          req.headers.authorization?.replace('Bearer ', '');
-        if (!authToken) {
-          res.redirect('/login');
-          return;
-        }
-
-        try {
-          // Prepare form data for backend API
-          const formData = new FormData();
-          formData.append('cv', req.file.buffer, {
-            filename: req.file.originalname,
-            contentType: req.file.mimetype,
-          });
-          formData.append('jobRoleId', jobRoleId);
-
-          // Forward the application + CV to backend API
-          const response = await axios.post(
-            `${API_BASE_URL}/api/applications`,
-            formData,
-            {
-              headers: {
-                Authorization: `Bearer ${authToken}`,
-                ...formData.getHeaders(),
-              },
-            },
-          );
-
-          // Redirect to success page
-          res.redirect('/application-success');
-        } catch (apiError: unknown) {
-          console.error('Error submitting application to backend:', apiError);
-
-          let errorMessage =
-            'Unable to submit application. Please try again later.';
-          if (axios.isAxiosError(apiError) && apiError.response?.data?.error) {
-            errorMessage = apiError.response.data.error;
-          }
-
-          res.status(500).render('error', {
-            title: 'Application Failed',
-            message: errorMessage,
-          });
-        }
-      } catch (error) {
-        console.error('Error in JobRoleController:', error);
-        res.status(500).render('error', {
-          title: 'Error',
-          message:
-            'Unable to process application request. Please try again later.',
-        });
-      }
-    },
-  );
 }
