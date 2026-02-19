@@ -79,59 +79,6 @@
     <script>
         // Set current year
         document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-        // Authentication state management
-        document.addEventListener('DOMContentLoaded', function() {
-            const signInButton = document.getElementById('signInButton');
-            const userMenu = document.getElementById('userMenu');
-            const userEmail = document.getElementById('userEmail');
-            const signOutButton = document.getElementById('signOutButton');
-
-            // Check authentication status
-            function checkAuthStatus() {
-                const token = sessionStorage.getItem('authToken');
-                const email = sessionStorage.getItem('userEmail');
-
-                if (token && email) {
-                    // User is logged in
-                    signInButton.classList.add('hidden');
-                    userMenu.classList.remove('hidden');
-                    userEmail.textContent = email;
-                } else {
-                    // User is not logged in
-                    signInButton.classList.remove('hidden');
-                    userMenu.classList.add('hidden');
-                }
-            }
-
-            // Sign out handler
-            function signOut() {
-                // Clear authentication data
-                sessionStorage.removeItem('authToken');
-                sessionStorage.removeItem('userEmail');
-                
-                // Update UI
-                checkAuthStatus();
-                
-                // Redirect to home page
-                window.location.href = '/';
-            }
-
-            // Add click handler for sign out button
-            if (signOutButton) {
-                signOutButton.addEventListener('click', signOut);
-            }
-
-            // Check auth status on page load
-            checkAuthStatus();
-
-            // Listen for auth changes (for when login happens in another tab)
-            window.addEventListener('storage', function(e) {
-                if (e.key === 'authToken' || e.key === 'userEmail') {
-                    checkAuthStatus();
-                }
-            });
-        });
     </script>
 </body>
 </html>

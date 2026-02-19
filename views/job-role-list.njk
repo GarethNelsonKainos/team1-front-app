@@ -1,51 +1,39 @@
+<!-- filepath: team1-front-app/views/job-role-list.njk -->
 {% extends "layout.njk" %}
 
 {% block content %}
     <div class="bg-white rounded-lg shadow-md p-6">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-3xl font-bold text-gray-800">Currently available roles</h2>
+            <h2 class="text-3xl font-bold text-gray-800">Current vacancies</h2>
             
-            <!-- TODO: Add authorization check - only show for Admin users -->
+            <!-- Server-side auth check - only show for Admin users (userRole === 2) -->
+            {% if user and user.userRole == 2 %}
             <div id="adminActions">
                 <a href="/add-role" 
                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     + Add New Job Role
                 </a>
             </div>
+            {% endif %}
         </div>
-        
-        {% if jobRoles | length == 0 %}
-            <p class="text-gray-600">No job roles are currently available.</p>
+
+        {% if jobRoles and jobRoles.length > 0 %}
+            <div class="grid gap-4">
+                {% for role in jobRoles %}
+                    <a href="/job-roles/{{ role.jobRoleId }}" 
+                       class="block p-4 border border-gray-200 rounded-lg hover:shadow-lg transition-shadow">
+                        <h3 class="text-xl font-semibold text-gray-800">{{ role.roleName }}</h3>
+                        <p class="text-gray-600 mt-2">{{ role.description }}</p>
+                        <div class="mt-3 flex gap-4 text-sm text-gray-500">
+                            <span>Band: {{ role.band }}</span>
+                            <span>Capability: {{ role.capability }}</span>
+                            <span>Location: {{ role.location }}</span>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
         {% else %}
-            <table class="w-full border-collapse border border-gray-300">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="border border-gray-300 px-4 py-2 text-left">Role Name</th>
-                        <th class="border border-gray-300 px-4 py-2 text-left">Location</th>
-                        <th class="border border-gray-300 px-4 py-2 text-left">Capability</th>
-                        <th class="border border-gray-300 px-4 py-2 text-left">Band</th>
-                        <th class="border border-gray-300 px-4 py-2 text-left">Closing Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for role in jobRoles %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-300 px-4 py-2">
-                                <a href="/job-roles/{{ role.jobRoleId }}" class="text-blue-700 underline hover:text-blue-900">
-                                    {{ role.roleName }}
-                                </a>
-                            </td>
-                            <td class="border border-gray-300 px-4 py-2">{{ role.location }}</td>
-                            <td class="border border-gray-300 px-4 py-2">{{ role.capability }}</td>
-                            <td class="border border-gray-300 px-4 py-2">{{ role.band }}</td>
-                            <td class="border border-gray-300 px-4 py-2">{{ role.closingDate }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <p class="text-gray-600">No job roles available at this time.</p>
         {% endif %}
     </div>
-
-<script src="/js/job-role-list.js"></script>
-
 {% endblock %}
