@@ -18,3 +18,41 @@ body {
         background-size: auto 100%; 
     }
 }
+
+/* Header Logo */
+.header-logo {
+  height: 50px;
+  width: auto;
+}
+
+/* User Email */
+.user-email {
+  color: var(--brand-primary);
+}
+
+/* Logout Form */
+.logout-form {
+  margin: 0;
+}
+
+/* Auth Buttons */
+.auth-button {
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.sign-out-button {
+  cursor: pointer;
+}
+
+/* Sign In Icon */
+.sign-in-icon {
+  height: 25px;
+}
+
+/* Footer Logo */
+.footer-logo img {
+  height: 50px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}

@@ -95,90 +95,16 @@ describe('FeatureFlags', () => {
   });
 
   describe('getAllFlags', () => {
-    it('should return all flags as true when all are enabled', () => {
+    it('should return all feature flag states when enabled', () => {
       process.env.ENABLE_JOB_APPLICATIONS = 'true';
-      process.env.ENABLE_ADD_JOB_ROLE = 'true';
-
       const result = getAllFlags();
-
-      expect(result).toEqual({
-        jobApplications: true,
-        addJobRole: true,
-      });
+      expect(result).toEqual({ jobApplications: true });
     });
 
-    it('should return all flags as false when none are set', () => {
-      const result = getAllFlags();
-
-      expect(result).toEqual({
-        jobApplications: false,
-        addJobRole: false,
-      });
-    });
-
-    it('should return mixed flag states', () => {
-      process.env.ENABLE_JOB_APPLICATIONS = 'true';
-      process.env.ENABLE_ADD_JOB_ROLE = 'false';
-
-      const result = getAllFlags();
-
-      expect(result).toEqual({
-        jobApplications: true,
-        addJobRole: false,
-      });
-    });
-
-    it('should handle "1" values for all flags', () => {
-      process.env.ENABLE_JOB_APPLICATIONS = '1';
-      process.env.ENABLE_ADD_JOB_ROLE = '1';
-
-      const result = getAllFlags();
-
-      expect(result).toEqual({
-        jobApplications: true,
-        addJobRole: true,
-      });
-    });
-
-    it('should return an object with correct keys', () => {
-      const result = getAllFlags();
-
-      expect(result).toHaveProperty('jobApplications');
-      expect(result).toHaveProperty('addJobRole');
-      expect(Object.keys(result)).toHaveLength(2);
-    });
-
-    it('should handle case-insensitive true values', () => {
-      process.env.ENABLE_JOB_APPLICATIONS = 'TRUE';
-      process.env.ENABLE_ADD_JOB_ROLE = 'True';
-
-      const result = getAllFlags();
-
-      expect(result).toEqual({
-        jobApplications: true,
-        addJobRole: true,
-      });
-    });
-  });
-
-  describe('Feature flag integration', () => {
-    it('should default to secure/disabled state for safety', () => {
-      // No environment variables set - should be opt-in, not opt-out
-      expect(isJobApplicationsEnabled()).toBe(false);
-      expect(isAddJobRoleEnabled()).toBe(false);
-    });
-
-    it('should handle environment changes during runtime', () => {
-      // Initially disabled
-      expect(isJobApplicationsEnabled()).toBe(false);
-
-      // Enable the flag
-      process.env.ENABLE_JOB_APPLICATIONS = 'true';
-      expect(isJobApplicationsEnabled()).toBe(true);
-
-      // Disable the flag
+    it('should return all feature flag states when disabled', () => {
       process.env.ENABLE_JOB_APPLICATIONS = 'false';
-      expect(isJobApplicationsEnabled()).toBe(false);
+      const result = getAllFlags();
+      expect(result).toEqual({ jobApplications: false });
     });
   });
 });

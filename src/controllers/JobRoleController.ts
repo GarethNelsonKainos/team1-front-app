@@ -1,4 +1,8 @@
-import type { Application } from 'express';
+import axios from 'axios';
+import type { Application, Request, Response } from 'express';
+import FormData from 'form-data';
+import multer from 'multer';
+import authenticateJWT from '../middleware/AuthMiddleware';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isAddJobRoleEnabled } from '../utils/FeatureFlags';
 
@@ -6,52 +10,92 @@ export default function JobRoleController(
   app: Application,
   jobRoleService: JobRoleService,
 ) {
-  app.get('/job-roles', async (req, res) => {
-    try {
-      // TODO: Add authorization middleware check when auth module is ready
-      const jobRoles = await jobRoleService.getJobRoles();
-      res.render('job-role-list', {
-        jobRoles,
-        canAddJobRole: isAddJobRoleEnabled(),
-      });
-    } catch (error) {
-      console.error('Error fetching job roles:', error);
-      res.status(500).render('error', {
-        message: 'Unable to load job roles. Please try again later.',
-      });
-    }
-  });
+  app.get(
+    '/job-roles',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        const token = req.cookies.token;
+        const jobRoles = await jobRoleService.getJobRoles();
 
-  app.get('/job-roles/add', (req, res) => {
-    // TODO: Add authorization middleware check when auth module is ready
-    // Should verify user is Admin (UserRole.Admin = 2)
+        res.render('job-role-list', {
+          title: 'Available Job Roles',
+          jobRoles: jobRoles,
+        });
+      } catch (error: unknown) {
+        console.error('Error in JobRoleController:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message: 'Unable to load job roles. Please try again later.',
+        });
+      }
+    },
+  );
 
-    if (!isAddJobRoleEnabled()) {
-      return res.status(403).render('error', {
-        message: 'This feature is not currently available',
-      });
-    }
+  app.get(
+    '/job-roles/:id',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        const idParam = req.params.id as string;
 
-    res.render('add-role', {
-      title: 'Add New Job Role',
-    });
-  });
+        const token = req.cookies.token;
+        const jobRole = await jobRoleService.getJobRoleById(idParam);
 
-  app.get('/job-roles/:id', async (req, res) => {
-    try {
-      // TODO: Add authorization middleware check when auth module is ready
-      const jobRole = await jobRoleService.getJobRoleById(
-        Number(req.params.id),
-      );
-      res.render('job-role-details', { jobRole });
-    } catch (error) {
-      console.error('Error fetching job role:', error);
-      res.status(404).render('error', {
-        message: 'Job role not found',
-      });
-    }
-  });
+        const formattedClosingDate = formatTimestampToDateString(
+          jobRole.closingDate,
+        );
 
+        res.render('job-role-information', {
+          title: jobRole.roleName,
+          jobRole: jobRole,
+          formattedClosingDate: formattedClosingDate,
+          isJobApplicationsEnabled: isJobApplicationsEnabled(),
+        });
+      } catch (error) {
+        console.error('Error fetching job role information:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message:
+            'Unable to load job role information. Please try again later.',
+        });
+      }
+    },
+  );
+
+  app.get(
+    '/job-roles/:id/apply',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        // Check if job applications feature is enabled
+        if (!isJobApplicationsEnabled()) {
+          res.status(404).render('error', {
+            title: 'Feature Not Available',
+            message: 'Job applications are currently not available.',
+          });
+          return;
+        }
+
+        const idParam = req.params.id as string;
+
+        const token = req.cookies.token;
+        const jobRole = await jobRoleService.getJobRoleById(idParam);
+
+        res.render('job-apply', {
+          title: `Apply for ${jobRole.roleName}`,
+          jobRoleId: jobRole.jobRoleId,
+          roleName: jobRole.roleName,
+        });
+      } catch (error) {
+        console.error('Error in JobRoleController:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message: 'Unable to load application page. Please try again later.',
+        });
+      }
+    },
+  );
   // API endpoints for axios calls from frontend
   app.get('/api/bands', async (req, res) => {
     try {
@@ -89,6 +133,85 @@ export default function JobRoleController(
     }
   });
 
+  app.post(
+    '/job-roles/:id/apply',
+    authenticateJWT,
+    upload.single('cv'),
+    async (req: Request, res: Response) => {
+      try {
+        // Check if job applications feature is enabled
+        if (!isJobApplicationsEnabled()) {
+          res.status(404).render('error', {
+            title: 'Feature Not Available',
+            message: 'Job applications are currently not available.',
+          });
+          return;
+        }
+
+        // Validate CV upload
+        if (!req.file) {
+          res.status(400).render('error', {
+            title: 'Missing CV',
+            message: 'Please upload your CV to complete the application.',
+          });
+          return;
+        }
+
+        const jobRoleId = req.params.id;
+
+        // Get auth token from cookies
+        const authToken = req.cookies.token;
+        if (!authToken) {
+          res.redirect('/login');
+          return;
+        }
+
+        try {
+          // Prepare form data for backend API
+          const formData = new FormData();
+          formData.append('cv', req.file.buffer, {
+            filename: req.file.originalname,
+            contentType: req.file.mimetype,
+          });
+          formData.append('jobRoleId', jobRoleId);
+
+          // Forward the application + CV to backend API
+          const response = await axios.post(
+            `${API_BASE_URL}/api/applications`,
+            formData,
+            {
+              headers: {
+                ...formData.getHeaders(),
+              },
+            },
+          );
+
+          // Redirect to success page
+          res.redirect('/application-success');
+        } catch (apiError: unknown) {
+          console.error('Error submitting application to backend:', apiError);
+
+          let errorMessage =
+            'Unable to submit application. Please try again later.';
+          if (axios.isAxiosError(apiError) && apiError.response?.data?.error) {
+            errorMessage = apiError.response.data.error;
+          }
+
+          res.status(500).render('error', {
+            title: 'Application Failed',
+            message: errorMessage,
+          });
+        }
+      } catch (error) {
+        console.error('Error in JobRoleController:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message:
+            'Unable to process application request. Please try again later.',
+        });
+      }
+    },
+  );
   app.post('/api/job-roles', async (req, res) => {
     try {
       // TODO: Add authorization middleware check when auth module is ready

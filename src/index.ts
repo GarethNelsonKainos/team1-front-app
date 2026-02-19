@@ -1,11 +1,22 @@
 import 'dotenv/config';
+import cookieParser from 'cookie-parser';
 import express from 'express';
 import nunjucks from 'nunjucks';
+import ApplicationController from './controllers/ApplicationController';
+import { AuthenticateController } from './controllers/AuthenticateController';
 import JobRoleController from './controllers/JobRoleController';
+import authenticationRouter from './router/AuthenticateRouter';
+import ApplicationService from './services/ApplicationService';
 import { JobRoleService } from './services/JobRoleService';
+import { LoginService } from './services/LoginService';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Configure Nunjucks
 nunjucks.configure('views', {
@@ -18,8 +29,10 @@ app.set('view engine', 'njk');
 // Static files
 app.use(express.static('public'));
 
-// Body parser middleware
-app.use(express.urlencoded({ extended: true }));
+// Auth routes
+const loginService = new LoginService();
+const authenticationController = new AuthenticateController(loginService);
+app.use(authenticationRouter(authenticationController));
 
 // Routes
 app.get('/', (req, res) => {
@@ -29,15 +42,15 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/login', (req, res) => {
-  res.render('login', {
-    title: 'Sign In - Kainos Job Roles',
-  });
-});
-
 app.get('/application-success', (req, res) => {
   res.render('application-success', {
     title: 'Application Submitted - Kainos Job Roles',
+  });
+});
+
+app.get('/login', (req, res) => {
+  res.render('login', {
+    title: 'Sign In - Kainos Job Roles',
   });
 });
 
@@ -46,6 +59,9 @@ app.get('/health', (req, res) => {
 });
 
 const jobRoleService = new JobRoleService();
+const applicationController = new ApplicationController(
+  new ApplicationService(),
+);
 
 JobRoleController(app, jobRoleService);
 
