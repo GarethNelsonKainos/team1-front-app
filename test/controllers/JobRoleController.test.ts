@@ -84,6 +84,145 @@ describe('JobRoleController', () => {
     JobRoleController(app, mockJobRoleService);
   });
 
+    it('should render confirm-delete page with authenticated user', async () => {
+    const mockJobRole: JobRole = {
+      jobRoleId: 1,
+      roleName: 'Software Engineer',
+      location: 'London',
+      capability: 'Engineering',
+      band: 'Band 4',
+      closingDate: '2026-02-28',
+      description: 'Test role',
+      responsibilities: 'Test responsibilities',
+    };
+
+    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+      canDelete: true,
+      jobRole: mockJobRole,
+    });
+
+    const response = await request(app).get('/job-roles/1/confirm-delete');
+
+    expect(response.status).toBe(200);
+    expect(response.body.view).toBe('confirm-delete');
+    expect(response.body.jobRole.roleName).toBe('Software Engineer');
+    expect(response.body.formattedClosingDate).toBeDefined();
+    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith('1');
+  });
+
+    it('should delete role and redirect on POST /job-roles/:id/delete with admin user', async () => {
+    vi.mocked(mockJobRoleService.deleteJobRole).mockResolvedValue(undefined);
+
+    // Override AuthMiddleware mock to set admin user
+    const appWithAdmin = express();
+    appWithAdmin.use(cookieParser());
+    appWithAdmin.use(express.urlencoded({ extended: true }));
+    appWithAdmin.use(express.json());
+    appWithAdmin.use((req, res, next) => {
+      req.cookies = { token: 'valid-test-token' };
+      next();
+    });
+
+    // Mock AuthMiddleware with admin user
+    vi.doMock('../../src/middleware/AuthMiddleware', () => ({
+      default: (req: unknown, res: unknown, next: () => void) => {
+        (res as { locals: { user: unknown } }).locals = {
+          user: { userId: 1, email: 'admin@example.com', userRole: 'Admin' },  // ← Admin role
+        };
+        next();
+      },
+    }));
+
+    appWithAdmin.use((req, res, next) => {
+      res.render = vi.fn((_view: string, _data: unknown) => {
+        res.send({ view: _view, ...(_data as object) });
+      });
+      next();
+    });
+
+    JobRoleController(appWithAdmin, mockJobRoleService);
+
+    const response = await request(appWithAdmin)
+      .post('/job-roles/1/delete')
+      .set('Cookie', ['token=valid-test-token']);
+
+    expect(response.status).toBe(302);  // Redirect status
+    expect(response.headers.location).toBe('/job-roles');
+    expect(vi.mocked(mockJobRoleService.deleteJobRole)).toHaveBeenCalledWith(
+      1,
+      'valid-test-token',
+    );
+  });
+
+    it('should return 403 on delete attempt by non-admin user', async () => {
+    const appWithApplicant = express();
+    appWithApplicant.use(cookieParser());
+    appWithApplicant.use(express.urlencoded({ extended: true }));
+    appWithApplicant.use(express.json());
+    appWithApplicant.use((req, res, next) => {
+      req.cookies = { token: 'valid-test-token' };
+      next();
+    });
+
+    // Mock AuthMiddleware with non-admin user
+    vi.doMock('../../src/middleware/AuthMiddleware', () => ({
+      default: (req: unknown, res: unknown, next: () => void) => {
+        (res as { locals: { user: unknown } }).locals = {
+          user: { userId: 2, email: 'applicant@example.com', userRole: 'Applicant' },  // ← Non-admin
+        };
+        next();
+      },
+    }));
+
+    appWithApplicant.use((req, res, next) => {
+      res.render = vi.fn((_view: string, _data: unknown) => {
+        res.send({ view: _view, ...(_data as object) });
+      });
+      next();
+    });
+
+    JobRoleController(appWithApplicant, mockJobRoleService);
+
+    const response = await request(appWithApplicant)
+      .post('/job-roles/1/delete')
+      .set('Cookie', ['token=valid-test-token']);
+
+    expect(response.status).toBe(403);
+    expect(response.body.view).toBe('error');
+    expect(response.body.message).toContain('do not have permission');
+    expect(vi.mocked(mockJobRoleService.deleteJobRole)).not.toHaveBeenCalled();
+  });
+
+
+  it('should redirect to /login if not authenticated', async () => {
+    const appNoAuth = express();
+    appNoAuth.use(cookieParser());
+    appNoAuth.use(express.urlencoded({ extended: true }));
+    appNoAuth.use(express.json());
+
+    // Mock AuthMiddleware that redirects to login
+    vi.doMock('../../src/middleware/AuthMiddleware', () => ({
+      default: (req: unknown, res: any, next: () => void) => {
+        res.redirect('/login');  // ← Redirect instead of calling next()
+      },
+    }));
+
+    appNoAuth.use((req, res, next) => {
+      res.render = vi.fn((_view: string, _data: unknown) => {
+        res.send({ view: _view, ...(_data as object) });
+      });
+      next();
+    });
+
+    JobRoleController(appNoAuth, mockJobRoleService);
+
+    const response = await request(appNoAuth).get('/job-roles/1/confirm-delete');
+
+    expect(response.status).toBe(302);  // Redirect status
+    expect(response.headers.location).toContain('/login');
+  });
+
+
   it('should render job-role-list when fetching job roles successfully', async () => {
     const mockJobRoles: JobRole[] = [
       {
@@ -171,7 +310,10 @@ describe('JobRoleController', () => {
       closingDate: '2026-02-28',
     };
 
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
+    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+      canDelete: true,
+      jobRole: mockJobRole,
+    });
 
     const response = await request(app).get('/job-roles/1/apply');
 
@@ -194,9 +336,10 @@ describe('JobRoleController', () => {
         closingDate: '2026-02-28',
       };
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
-        mockJobRole,
-      );
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        canDelete: true,
+        jobRole: mockJobRole,
+      });
 
       const response = await request(app).get('/job-roles/1');
 
@@ -234,9 +377,10 @@ describe('JobRoleController', () => {
         closingDate: '2026-02-28',
       };
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(
-        mockJobRole,
-      );
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        canDelete: true,
+        jobRole: mockJobRole,
+      });
 
       const response = await request(app).get('/job-roles/1/apply');
 
