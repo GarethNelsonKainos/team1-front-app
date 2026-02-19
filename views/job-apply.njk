@@ -1,0 +1,20 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<div class="container mx-auto max-w-md mt-8 p-6 bg-white rounded shadow">
+    <h2 class="text-2xl mb-4">Apply for {{ roleName }}</h2>
+    
+    <form action="/job-roles/{{ jobRoleId }}/apply" method="POST" enctype="multipart/form-data" class="space-y-4">
+        <div>
+            <label for="cv" class="block mb-2 font-medium">CV Upload (Required)</label>
+            <input type="file" id="cv" name="cv" accept=".pdf" required class="w-full p-2 border border-gray-300 rounded">
+            <p class="text-gray-600 text-xs mt-1">PDF files only, max 5MB</p>
+        </div>
+        
+        <div class="flex gap-4">
+            <a href="/job-roles/{{ jobRoleId }}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary">Submit Application</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,8 +1,15 @@
 import axios from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
-import { fetchJobRoles } from '../src/api';
 import type { JobRole } from '../src/models/JobRole';
+
+// Simple API functions for testing
+const API_BASE_URL = 'http://localhost:8080';
+
+async function fetchJobRoles(): Promise<JobRole[]> {
+  const response = await axios.get<JobRole[]>(`${API_BASE_URL}/api/job-roles`);
+  return response.data;
+}
 
 vi.mock('axios');
 

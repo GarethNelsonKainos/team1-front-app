@@ -154,9 +154,9 @@
                             hideMessages();
                             successMessage.classList.remove('hidden');
                             
-                            // Redirect to home page after a short delay
+                            // Redirect to job roles page after a short delay
                             setTimeout(() => {
-                                window.location.href = '/';
+                                window.location.href = '/job-roles';
                             }, 1500);
                         } else {
                             throw new Error('No token received');
