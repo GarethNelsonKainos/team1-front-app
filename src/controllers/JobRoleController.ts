@@ -84,11 +84,29 @@ export default function JobRoleController(
 
   app.get(
     '/job-roles/:id/confirm-delete',
+    authenticateJWT,
     async (req: Request, res: Response) => {
-      // get the job id
-      // get job info
-      // render confirm delete page with info
-      res.render('confirm-delete');
+      try {
+        const idParam = req.params.id as string;
+
+        const jobRole = await jobRoleService.getJobRoleById(idParam);
+
+        const formattedClosingDate = formatTimestampToDateString(
+          jobRole.jobRole.closingDate,
+        );
+
+        res.render('confirm-delete', {
+          title: 'Confirm Delete',
+          jobRole: jobRole.jobRole,
+          formattedClosingDate: formattedClosingDate,
+        });
+      } catch (error) {
+        console.error('Error fetching job role for deletion:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message: 'Unable to load job role. Please try again later.',
+        });
+      }
     },
   );
 
