@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import express from 'express';
 import nunjucks from 'nunjucks';
-import JobRoleController from './controllers/JobRoleController';
-import { JobRoleService } from './services/JobRoleService';
 import ApplicationController from './controllers/ApplicationController';
-import ApplicationService from './services/ApplicationService';
+import JobRoleController from './controllers/JobRoleController';
 import applicationRouter from './router/ApplicationRouter';
+import ApplicationService from './services/ApplicationService';
+import { JobRoleService } from './services/JobRoleService';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,7 +43,9 @@ app.get('/health', (req, res) => {
 });
 
 const jobRoleService = new JobRoleService();
-const applicationController = new ApplicationController(new ApplicationService());
+const applicationController = new ApplicationController(
+  new ApplicationService(),
+);
 
 JobRoleController(app, jobRoleService);
 

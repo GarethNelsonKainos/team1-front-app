@@ -81,7 +81,7 @@ export default function JobRoleController(
         return;
       }
 
-      if(!req.params.id) {
+      if (!req.params.id) {
         res.status(400).render('error', {
           title: 'Invalid Request',
           message: 'Job role ID is required to apply.',
@@ -89,7 +89,7 @@ export default function JobRoleController(
         return;
       }
 
-      const idParam = parseInt(req.params.id as string, 10);
+      const idParam = Number.parseInt(req.params.id as string, 10);
 
       const jobRole = await jobRoleService.getJobRoleById(idParam);
 
