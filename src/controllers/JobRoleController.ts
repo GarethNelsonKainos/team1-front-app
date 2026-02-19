@@ -3,7 +3,10 @@ import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import type { JobRoleService } from '../services/JobRoleService';
-import { isAddJobRoleEnabled, isJobApplicationsEnabled } from '../utils/FeatureFlags';
+import {
+  isAddJobRoleEnabled,
+  isJobApplicationsEnabled,
+} from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
 
 export default function JobRoleController(
@@ -131,15 +134,7 @@ export default function JobRoleController(
 
           // Forward the application + CV to backend API
           // authenticateJWT middleware already set Authorization header in axios defaults
-          const response = await axios.post(
-            `/api/applications`,
-            formData,
-            {
-              headers: {
-                ...formData.getHeaders(),
-              },
-            },
-          );
+          const response = await axios.post('/api/applications');
 
           // Redirect to success page
           res.redirect('/application-success');
@@ -168,51 +163,47 @@ export default function JobRoleController(
     },
   );
 
-  app.get(
-    '/add-role',
-    authenticateJWT,
-    async (req: Request, res: Response) => {
-      try {
-        if (!isAddJobRoleEnabled()) {
-          res.status(404).render('error', {
-            title: 'Feature Not Available',
-            message: 'Adding job roles is currently not available.',
-          });
-          return;
-        }
-
-        if (!res.locals.user || res.locals.user.userRole !== 2) {
-          res.status(403).render('error', {
-            title: 'Access Denied',
-            message: 'You do not have permission to access this page.',
-          });
-          return;
-        }
-
-        const [bands, capabilities, locations] = await Promise.all([
-          jobRoleService.getBands(),
-          jobRoleService.getCapabilities(),
-          jobRoleService.getLocations(),
-        ]);
-
-        res.render('add-role', {
-          title: 'Add New Job Role',
-          user: res.locals.user,
-          bands,
-          capabilities,
-          locations,
+  app.get('/add-role', authenticateJWT, async (req: Request, res: Response) => {
+    try {
+      if (!isAddJobRoleEnabled()) {
+        res.status(404).render('error', {
+          title: 'Feature Not Available',
+          message: 'Adding job roles is currently not available.',
         });
-      } catch (error) {
-        console.error('Error in JobRoleController:', error);
-        res.status(500).render('error', {
-          title: 'Error',
-          message: 'Unable to load add role page. Please try again later.',
-        });
+        return;
       }
-    },
-  );
 
-app.post(
+      if (!res.locals.user || res.locals.user.userRole !== 2) {
+        res.status(403).render('error', {
+          title: 'Access Denied',
+          message: 'You do not have permission to access this page.',
+        });
+        return;
+      }
+
+      const [bands, capabilities, locations] = await Promise.all([
+        jobRoleService.getBands(),
+        jobRoleService.getCapabilities(),
+        jobRoleService.getLocations(),
+      ]);
+
+      res.render('add-role', {
+        title: 'Add New Job Role',
+        user: res.locals.user,
+        bands,
+        capabilities,
+        locations,
+      });
+    } catch (error) {
+      console.error('Error in JobRoleController:', error);
+      res.status(500).render('error', {
+        title: 'Error',
+        message: 'Unable to load add role page. Please try again later.',
+      });
+    }
+  });
+
+  app.post(
     '/add-role',
     authenticateJWT,
     async (req: Request, res: Response) => {
@@ -233,9 +224,9 @@ app.post(
           return;
         }
 
-        // Pass the raw body to the service 
+        // Pass the raw body to the service
         await jobRoleService.createJobRole(req.body);
-        
+
         // Redirect to success page
         res.redirect('/job-roles');
       } catch (error) {
@@ -249,7 +240,7 @@ app.post(
         ]);
 
         let errorMessage = 'Failed to create job role. Please try again.';
-        
+
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 409) {
             errorMessage = 'A job role with this name already exists.';
@@ -258,16 +249,16 @@ app.post(
           }
         }
 
-          res.render('add-role', {
-            title: 'Add New Job Role',
-            user: res.locals.user,
-            bands,
-            capabilities,
-            locations,
-            error: errorMessage,
-            formData: req.body // Re-populate form with submitted data
-          });
-        }
-      },
-    );
-  }
+        res.render('add-role', {
+          title: 'Add New Job Role',
+          user: res.locals.user,
+          bands,
+          capabilities,
+          locations,
+          error: errorMessage,
+          formData: req.body, // Re-populate form with submitted data
+        });
+      }
+    },
+  );
+}

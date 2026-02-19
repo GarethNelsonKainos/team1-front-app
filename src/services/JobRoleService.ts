@@ -7,9 +7,23 @@ import type { Location } from '../models/Location';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
+interface RawJobRoleFormData {
+  roleName: string;
+  capabilityId: string;
+  bandId: string;
+  description: string;
+  responsibilities: string;
+  jobSpecLink: string;
+  openPositions: string;
+  locationIds: string | string[];
+  closingDate: string;
+}
+
 export class JobRoleService {
   async getJobRoles(): Promise<JobRole[]> {
-    const { data } = await axios.get<JobRole[]>(`${API_BASE_URL}/api/job-roles`);
+    const { data } = await axios.get<JobRole[]>(
+      `${API_BASE_URL}/api/job-roles`,
+    );
     return data;
   }
 
@@ -20,24 +34,24 @@ export class JobRoleService {
     return data;
   }
 
-  async createJobRole(rawFormData: any): Promise<JobRole> {
+  async createJobRole(rawFormData: RawJobRoleFormData): Promise<JobRole> {
     const formData: CreateJobRoleRequest = {
       roleName: rawFormData.roleName,
-      capabilityId: parseInt(rawFormData.capabilityId, 10),
-      bandId: parseInt(rawFormData.bandId, 10),
+      capabilityId: Number.parseInt(rawFormData.capabilityId, 10),
+      bandId: Number.parseInt(rawFormData.bandId, 10),
       description: rawFormData.description,
       responsibilities: rawFormData.responsibilities,
       jobSpecLink: rawFormData.jobSpecLink,
-      openPositions: parseInt(rawFormData.openPositions, 10),
-      locationIds: Array.isArray(rawFormData.locationIds) 
-        ? rawFormData.locationIds.map((id: string) => parseInt(id, 10))
-        : [parseInt(rawFormData.locationIds, 10)],
-      closingDate: new Date(rawFormData.closingDate).toISOString()
+      openPositions: Number.parseInt(rawFormData.openPositions, 10),
+      locationIds: Array.isArray(rawFormData.locationIds)
+        ? rawFormData.locationIds.map((id: string) => Number.parseInt(id, 10))
+        : [Number.parseInt(rawFormData.locationIds, 10)],
+      closingDate: new Date(rawFormData.closingDate).toISOString(),
     };
 
     const response = await axios.post<JobRole>(
       `${API_BASE_URL}/api/job-roles`,
-      formData
+      formData,
     );
     return response.data;
   }
@@ -55,7 +69,9 @@ export class JobRoleService {
   }
 
   async getLocations(): Promise<Location[]> {
-    const { data } = await axios.get<Location[]>(`${API_BASE_URL}/api/locations`);
+    const { data } = await axios.get<Location[]>(
+      `${API_BASE_URL}/api/locations`,
+    );
     return data;
   }
 }
