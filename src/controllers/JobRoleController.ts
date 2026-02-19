@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { Application, Request, Response } from 'express';
-import { API_BASE_URL } from '../config';
 import FormData from 'form-data';
 import multer from 'multer';
+import { API_BASE_URL } from '../config';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
@@ -33,11 +33,12 @@ export default function JobRoleController(
     async (req: Request, res: Response) => {
       try {
         const token = req.cookies.token;
-        const jobRoles = await jobRoleService.getJobRoles();
+        const response = await jobRoleService.getJobRoles();
 
         res.render('job-role-list', {
           title: 'Available Job Roles',
-          jobRoles: jobRoles,
+          jobRoles: response.jobRoles,
+          canDelete: response.canDelete,
         });
       } catch (error: unknown) {
         console.error('Error in JobRoleController:', error);
@@ -68,8 +69,8 @@ export default function JobRoleController(
           jobRole: jobRole.jobRole,
           formattedClosingDate: formattedClosingDate,
           canDelete: true,
-        apiBaseUrl: API_BASE_URL,
-        isJobApplicationsEnabled: isJobApplicationsEnabled(),
+          apiBaseUrl: API_BASE_URL,
+          isJobApplicationsEnabled: isJobApplicationsEnabled(),
         });
       } catch (error) {
         console.error('Error fetching job role information:', error);
@@ -143,16 +144,7 @@ export default function JobRoleController(
       }
     },
   );
-  app.get('/job-roles/:id/apply', async (req: Request, res: Response) => {
-    try {
-      // Check if job applications feature is enabled
-      if (!isJobApplicationsEnabled()) {
-        res.status(404).render('error', {
-          title: 'Feature Not Available',
-          message: 'Job applications are currently not available.',
-        });
-        return;
-      }
+
   app.get(
     '/job-roles/:id/apply',
     authenticateJWT,

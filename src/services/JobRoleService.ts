@@ -30,15 +30,15 @@ export class JobRoleService {
   }
 
   async deleteJobRole(id: number, token: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/api/job-roles/${id}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error('Failed to delete job role');
+    try {
+      await axios.delete(`${API_BASE_URL}/api/job-roles/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error: unknown) {
+      console.error(`Error deleting job role with id ${id}:`, error);
+      throw error;
     }
   }
 

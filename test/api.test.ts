@@ -41,7 +41,7 @@ describe('API', () => {
 
     const result = await fetchJobRoles();
 
-    expect(result).toEqual(mockJobRoles);
+    expect(result.jobRoles).toEqual(mockJobRoles);
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles'),
     );
@@ -64,6 +64,6 @@ describe('API', () => {
 
     const result = await fetchJobRoles();
 
-    expect(result).toEqual([]);
+    expect(result.jobRoles).toEqual([]);
   });
 });
