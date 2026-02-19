@@ -194,37 +194,4 @@ export default function JobRoleController(
       }
     },
   );
-
-  // GET route for job application form
-  app.get(
-    '/job-roles/:id/apply',
-    authenticateJWT,
-    async (req: Request, res: Response) => {
-      try {
-        if (!req.params.id) {
-          res.status(400).render('error', {
-            title: 'Invalid Request',
-            message: 'Job role ID is required to apply.',
-          });
-          return;
-        }
-
-        const idParam = Number.parseInt(req.params.id as string, 10);
-
-        const jobRole = await jobRoleService.getJobRoleById(idParam);
-
-        res.render('job-apply', {
-          title: `Apply for ${jobRole.roleName}`,
-          jobRoleId: jobRole.jobRoleId,
-          roleName: jobRole.roleName,
-        });
-      } catch (error) {
-        console.error('Error in JobRoleController:', error);
-        res.status(500).render('error', {
-          title: 'Error',
-          message: 'Unable to load application page. Please try again later.',
-        });
-      }
-    },
-  );
 }
