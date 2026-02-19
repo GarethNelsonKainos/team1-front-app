@@ -3,6 +3,7 @@ import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
 import multer from 'multer';
 import authenticateJWT from '../middleware/AuthMiddleware';
+import { JobRoleStatus } from '../models/JobRole';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
@@ -72,15 +73,11 @@ export default function JobRoleController(
         } else if (!isJobApplicationsEnabled()) {
           jobStatusMessage = 'Job applications are currently unavailable';
         } else if (
-          jobRole.status !== 'Open' ||
+          jobRole.status !== JobRoleStatus.Open ||
           (jobRole.openPositions ?? 0) <= 0
         ) {
           jobStatusMessage = 'This position is no longer available';
-        } else if (
-          isJobApplicationsEnabled() &&
-          jobRole.status === 'Open' &&
-          (jobRole.openPositions ?? 0) > 0
-        ) {
+        } else {
           jobStatusMessage = `<a href="/job-roles/${jobRole.jobRoleId}/apply" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-colors">Apply Now</a>`;
         }
 
