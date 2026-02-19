@@ -11,7 +11,10 @@ import * as FeatureFlags from '../../src/utils/FeatureFlags';
 
 // Mock external dependencies
 vi.mock('../../src/utils/FeatureFlags');
-vi.mock('../../src/Middleware/AuthMiddleware', () => ({
+vi.mock('../../src/utils/date-formatter', () => ({
+  formatTimestampToDateString: vi.fn((date: string) => date),
+}));
+vi.mock('../../src/middleware/AuthMiddleware', () => ({
   default: (req: unknown, res: unknown, next: () => void) => {
     // Mock authenticated user
     (res as { locals: { user: unknown } }).locals = {
@@ -41,6 +44,15 @@ describe('JobRoleController', () => {
   let mockJobRoleService: JobRoleService;
 
   beforeEach(() => {
+    // Reset all mocks
+    vi.clearAllMocks();
+
+    // Set up environment variables
+    process.env.API_BASE_URL = 'http://localhost:3001';
+
+    // Initialize FeatureFlags mock with default values
+    vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+
     app = express();
     app.set('view engine', 'njk');
     app.set('views', './views');
