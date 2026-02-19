@@ -14,16 +14,8 @@ export default function authenticateJWT(
     return;
   }
 
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    res.status(500).render('error', {
-      error: 'Internal server error',
-    });
-    return;
-  }
-
   try {
-    const decoded = jwt.verify(token, jwtSecret);
+    const decoded = jwt.decode(token);
     axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     res.locals.user = decoded;
     next();

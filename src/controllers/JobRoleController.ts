@@ -3,6 +3,7 @@ import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
 import multer from 'multer';
 import authenticateJWT from '../middleware/AuthMiddleware';
+import { JobRoleStatus } from '../models/JobRole';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
@@ -33,7 +34,6 @@ export default function JobRoleController(
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
-        const token = req.cookies.token;
         const jobRoles = await jobRoleService.getJobRoles();
 
         res.render('job-role-list', {
@@ -57,18 +57,36 @@ export default function JobRoleController(
       try {
         const idParam = req.params.id as string;
 
-        const token = req.cookies.token;
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         const formattedClosingDate = formatTimestampToDateString(
           jobRole.closingDate,
         );
 
+        // Calculate job status message based on conditions
+        let jobStatusMessage = '';
+        const user = res.locals.user;
+
+        if (!user) {
+          jobStatusMessage =
+            '<a href="/login" class="text-blue-700 underline">Sign in</a> to apply';
+        } else if (!isJobApplicationsEnabled()) {
+          jobStatusMessage = 'Job applications are currently unavailable';
+        } else if (
+          jobRole.status !== JobRoleStatus.Open ||
+          (jobRole.openPositions ?? 0) <= 0
+        ) {
+          jobStatusMessage = 'This position is no longer available';
+        } else {
+          jobStatusMessage = `<a href="/job-roles/${jobRole.jobRoleId}/apply" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-colors">Apply Now</a>`;
+        }
+
         res.render('job-role-information', {
           title: jobRole.roleName,
           jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
           isJobApplicationsEnabled: isJobApplicationsEnabled(),
+          jobStatusMessage: jobStatusMessage,
         });
       } catch (error) {
         console.error('Error fetching job role information:', error);
@@ -97,7 +115,6 @@ export default function JobRoleController(
 
         const idParam = req.params.id as string;
 
-        const token = req.cookies.token;
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         res.render('job-apply', {
@@ -116,7 +133,7 @@ export default function JobRoleController(
   );
 
   app.post(
-    '/job-roles/:id/apply',
+    '/application/:id/apply',
     authenticateJWT,
     upload.single('cv'),
     async (req: Request, res: Response) => {
@@ -164,6 +181,7 @@ export default function JobRoleController(
             {
               headers: {
                 ...formData.getHeaders(),
+                Authorization: `Bearer ${authToken}`,
               },
             },
           );

@@ -1,3 +1,8 @@
+export enum JobRoleStatus {
+  Open = 'Open',
+  Closed = 'Closed',
+}
+
 export interface JobRole {
   jobRoleId: number;
   roleName: string;
