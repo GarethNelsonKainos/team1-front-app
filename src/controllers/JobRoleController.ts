@@ -113,18 +113,36 @@ export default function JobRoleController(
   // This will need to be edited when the authentication for the frontend is implemented,
   // as we will need to pass the token from the frontend to the backend to verify that
   // the user is an admin before allowing them to delete a job role
-  app.delete('/job-roles/:id/', async (req: Request, res: Response) => {
-    if (!req.user?.isAdmin) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-    const id = Number(req.params.id);
-    try {
-      await jobRoleService.deleteJobRole(id, req.user.token);
-      res.status(204).send();
-    } catch (e) {
-      res.status(500).json({ error: 'Failed to delete role' });
-    }
-  });
+  app.post(
+    '/job-roles/:id/delete',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        const id = Number(req.params.id);
+
+        // Check if user is admin
+        if (res.locals.user?.userRole !== 'Admin') {
+          res.status(403).render('error', {
+            title: 'Forbidden',
+            message: 'You do not have permission to delete job roles.',
+          });
+          return;
+        }
+
+        // Delete the job role
+        await jobRoleService.deleteJobRole(id, req.cookies.token);
+
+        // Redirect to job roles list on success
+        res.redirect('/job-roles');
+      } catch (error) {
+        console.error('Error deleting job role:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message: 'Unable to delete job role. Please try again later.',
+        });
+      }
+    },
+  );
   app.get('/job-roles/:id/apply', async (req: Request, res: Response) => {
     try {
       // Check if job applications feature is enabled
