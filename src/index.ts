@@ -36,9 +36,7 @@ app.use(authenticationRouter(authenticationController));
 
 // Routes
 app.get('/', (req, res) => {
-  res.render('login', {
-    title: 'Sign In - Kainos Job Roles',
-  });
+  res.redirect('/login');
 });
 
 app.get('/application-success', (req, res) => {

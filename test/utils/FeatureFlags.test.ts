@@ -97,14 +97,22 @@ describe('FeatureFlags', () => {
   describe('getAllFlags', () => {
     it('should return all feature flag states when enabled', () => {
       process.env.ENABLE_JOB_APPLICATIONS = 'true';
+      process.env.ENABLE_ADD_JOB_ROLE = 'true';
       const result = getAllFlags();
-      expect(result).toEqual({ jobApplications: true });
+      expect(result).toEqual({
+        jobApplications: true,
+        addJobRole: true,
+      });
     });
 
     it('should return all feature flag states when disabled', () => {
       process.env.ENABLE_JOB_APPLICATIONS = 'false';
+      process.env.ENABLE_ADD_JOB_ROLE = 'false';
       const result = getAllFlags();
-      expect(result).toEqual({ jobApplications: false });
+      expect(result).toEqual({
+        jobApplications: false,
+        addJobRole: false,
+      });
     });
   });
 });

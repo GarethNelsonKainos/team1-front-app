@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
+import multer from 'multer';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import { JobRoleStatus } from '../models/JobRole';
 import type { JobRoleService } from '../services/JobRoleService';
@@ -9,6 +10,22 @@ import {
   isJobApplicationsEnabled,
 } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
+
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  },
+});
 
 export default function JobRoleController(
   app: Application,
@@ -99,13 +116,13 @@ export default function JobRoleController(
         }
 
         const idParam = Number(req.params.id);
+
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         res.render('job-apply', {
           title: `Apply for ${jobRole.roleName}`,
           jobRoleId: jobRole.jobRoleId,
           roleName: jobRole.roleName,
-          user: res.locals.user,
         });
       } catch (error) {
         console.error('Error in JobRoleController:', error);
@@ -120,6 +137,7 @@ export default function JobRoleController(
   app.post(
     '/application/:id/apply',
     authenticateJWT,
+    upload.single('cv'),
     async (req: Request, res: Response) => {
       try {
         // Check if job applications feature is enabled
@@ -141,6 +159,13 @@ export default function JobRoleController(
         }
 
         const jobRoleId = req.params.id;
+
+        // Get auth token from cookies
+        const authToken = req.cookies.token;
+        if (!authToken) {
+          res.redirect('/login');
+          return;
+        }
 
         try {
           // Prepare form data for backend API
