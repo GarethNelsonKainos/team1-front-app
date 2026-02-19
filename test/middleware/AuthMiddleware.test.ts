@@ -1,9 +1,11 @@
+import axios from 'axios';
 import type { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import authenticateJWT from '../../src/Middleware/AuthMiddleware';
 
 vi.mock('jsonwebtoken');
+vi.mock('axios');
 
 describe('AuthMiddleware', () => {
   let mockReq: Partial<Request>;
@@ -15,6 +17,11 @@ describe('AuthMiddleware', () => {
   let renderMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    // Reset axios defaults
+    if (axios.defaults.headers.common) {
+      axios.defaults.headers.common.Authorization = undefined;
+    }
+
     redirectMock = vi.fn();
     clearCookieMock = vi.fn();
     renderMock = vi.fn();
@@ -60,6 +67,9 @@ describe('AuthMiddleware', () => {
 
     expect(jwt.verify).toHaveBeenCalledWith(mockToken, 'test-secret');
     expect(mockRes.locals?.user).toEqual(mockDecoded);
+    expect(axios.defaults.headers.common?.Authorization).toBe(
+      `Bearer ${mockToken}`,
+    );
     expect(mockNext).toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
   });
@@ -74,6 +84,7 @@ describe('AuthMiddleware', () => {
     );
 
     expect(redirectMock).toHaveBeenCalledWith('/login');
+    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
   });
 
@@ -93,6 +104,7 @@ describe('AuthMiddleware', () => {
 
     expect(clearCookieMock).toHaveBeenCalledWith('token');
     expect(redirectMock).toHaveBeenCalledWith('/login');
+    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
   });
 
@@ -114,6 +126,7 @@ describe('AuthMiddleware', () => {
 
     expect(clearCookieMock).toHaveBeenCalledWith('token');
     expect(redirectMock).toHaveBeenCalledWith('/login');
+    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
   });
 
@@ -135,6 +148,7 @@ describe('AuthMiddleware', () => {
 
     expect(clearCookieMock).toHaveBeenCalledWith('token');
     expect(redirectMock).toHaveBeenCalledWith('/login');
+    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
   });
 
@@ -155,6 +169,7 @@ describe('AuthMiddleware', () => {
     expect(renderMock).toHaveBeenCalledWith('error', {
       error: 'Internal server error',
     });
+    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
     expect(redirectMock).not.toHaveBeenCalled();
 

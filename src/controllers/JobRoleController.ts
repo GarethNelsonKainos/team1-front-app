@@ -34,7 +34,7 @@ export default function JobRoleController(
     async (req: Request, res: Response) => {
       try {
         const token = req.cookies.token;
-        const jobRoles = await jobRoleService.getJobRoles(token);
+        const jobRoles = await jobRoleService.getJobRoles();
 
         res.render('job-role-list', {
           title: 'Available Job Roles',
@@ -58,7 +58,7 @@ export default function JobRoleController(
         const idParam = req.params.id as string;
 
         const token = req.cookies.token;
-        const jobRole = await jobRoleService.getJobRoleById(idParam, token);
+        const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         const formattedClosingDate = formatTimestampToDateString(
           jobRole.closingDate,
@@ -98,7 +98,7 @@ export default function JobRoleController(
         const idParam = req.params.id as string;
 
         const token = req.cookies.token;
-        const jobRole = await jobRoleService.getJobRoleById(idParam, token);
+        const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         res.render('job-apply', {
           title: `Apply for ${jobRole.roleName}`,
@@ -163,7 +163,6 @@ export default function JobRoleController(
             formData,
             {
               headers: {
-                Authorization: `Bearer ${authToken}`,
                 ...formData.getHeaders(),
               },
             },

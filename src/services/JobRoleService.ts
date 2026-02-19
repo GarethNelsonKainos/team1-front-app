@@ -4,13 +4,10 @@ import type { JobRole } from '../models/JobRole';
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export class JobRoleService {
-  async getJobRoles(token?: string): Promise<JobRole[]> {
+  async getJobRoles(): Promise<JobRole[]> {
     try {
       const response = await axios.get<JobRole[]>(
         `${API_BASE_URL}/api/job-roles`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
       );
       return response.data;
     } catch (error: unknown) {
@@ -19,13 +16,10 @@ export class JobRoleService {
     }
   }
 
-  async getJobRoleById(id: string | number, token?: string): Promise<JobRole> {
+  async getJobRoleById(id: string | number): Promise<JobRole> {
     try {
       const response = await axios.get<JobRole>(
         `${API_BASE_URL}/api/job-roles/${id}`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        },
       );
       return response.data;
     } catch (error: unknown) {
