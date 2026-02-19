@@ -55,9 +55,8 @@ export default function JobRoleController(
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
-        const idParam = Array.isArray(req.params.id)
-          ? req.params.id[0]
-          : req.params.id;
+        const idParam = req.params.id as string;
+
         const token = req.cookies.token;
         const jobRole = await jobRoleService.getJobRoleById(idParam, token);
 
@@ -96,9 +95,7 @@ export default function JobRoleController(
           return;
         }
 
-        const idParam = Array.isArray(req.params.id)
-          ? req.params.id[0]
-          : req.params.id;
+        const idParam = req.params.id as string;
 
         const token = req.cookies.token;
         const jobRole = await jobRoleService.getJobRoleById(idParam, token);

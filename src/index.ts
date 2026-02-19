@@ -6,6 +6,7 @@ import authenticationRouter from './Router/AuthenticateRouter';
 import { AuthenticateController } from './controllers/AuthenticateController';
 import JobRoleController from './controllers/JobRoleController';
 import { JobRoleService } from './services/JobRoleService';
+import { LoginService } from './services/LoginService';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,7 +28,8 @@ app.set('view engine', 'njk');
 app.use(express.static('public'));
 
 // Auth routes
-const authenticationController = new AuthenticateController();
+const loginService = new LoginService();
+const authenticationController = new AuthenticateController(loginService);
 app.use(authenticationRouter(authenticationController));
 
 // Routes

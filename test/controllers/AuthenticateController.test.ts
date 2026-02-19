@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthenticateController } from '../../src/controllers/AuthenticateController';
-import { LoginService } from '../../src/services/LoginService';
+import type { LoginService } from '../../src/services/LoginService';
 
 vi.mock('../../src/services/LoginService');
 
@@ -9,6 +9,7 @@ describe('AuthenticateController', () => {
   let controller: AuthenticateController;
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
+  let mockLoginService: LoginService;
   let cookieMock: ReturnType<typeof vi.fn>;
   let clearCookieMock: ReturnType<typeof vi.fn>;
   let redirectMock: ReturnType<typeof vi.fn>;
@@ -16,7 +17,12 @@ describe('AuthenticateController', () => {
   let statusMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    controller = new AuthenticateController();
+    // Create mock LoginService
+    mockLoginService = {
+      login: vi.fn(),
+    } as unknown as LoginService;
+
+    controller = new AuthenticateController(mockLoginService);
 
     cookieMock = vi.fn();
     clearCookieMock = vi.fn();
@@ -42,7 +48,31 @@ describe('AuthenticateController', () => {
     vi.clearAllMocks();
   });
 
-  describe('renderLogin', () => {
+  describe('renderLoginPage', () => {
+    it('should render login page without error', async () => {
+      mockReq.query = {};
+
+      await controller.renderLoginPage(mockReq as Request, mockRes as Response);
+
+      expect(renderMock).toHaveBeenCalledWith('login', {
+        title: 'Sign In - Kainos Job Roles',
+        error: undefined,
+      });
+    });
+
+    it('should render login page with error from query params', async () => {
+      mockReq.query = { error: 'Invalid Credentials' };
+
+      await controller.renderLoginPage(mockReq as Request, mockRes as Response);
+
+      expect(renderMock).toHaveBeenCalledWith('login', {
+        title: 'Sign In - Kainos Job Roles',
+        error: 'Invalid Credentials',
+      });
+    });
+  });
+
+  describe('performLogin', () => {
     it('should set cookie and redirect on successful login', async () => {
       const mockToken = 'mock.jwt.token';
       mockReq.body = {
@@ -50,11 +80,11 @@ describe('AuthenticateController', () => {
         password: 'Password123!',
       };
 
-      vi.mocked(LoginService.prototype.login).mockResolvedValue(mockToken);
+      vi.mocked(mockLoginService.login).mockResolvedValue(mockToken);
 
-      await controller.renderLogin(mockReq as Request, mockRes as Response);
+      await controller.performLogin(mockReq as Request, mockRes as Response);
 
-      expect(LoginService.prototype.login).toHaveBeenCalledWith(
+      expect(mockLoginService.login).toHaveBeenCalledWith(
         'test@example.com',
         'Password123!',
       );
@@ -69,24 +99,22 @@ describe('AuthenticateController', () => {
       expect(redirectMock).toHaveBeenCalledWith('/job-roles');
     });
 
-    it('should render login page with error on failed authentication', async () => {
+    it('should redirect to login with error on failed authentication', async () => {
       mockReq.body = {
         email: 'wrong@example.com',
         password: 'wrongpassword',
       };
 
-      vi.mocked(LoginService.prototype.login).mockRejectedValue(
+      vi.mocked(mockLoginService.login).mockRejectedValue(
         new Error('Unauthorized'),
       );
 
-      await controller.renderLogin(mockReq as Request, mockRes as Response);
+      await controller.performLogin(mockReq as Request, mockRes as Response);
 
-      expect(renderMock).toHaveBeenCalledWith('login', {
-        error: 'Invalid Credentials',
-      });
-
+      expect(redirectMock).toHaveBeenCalledWith(
+        '/login?error=Invalid%20Credentials',
+      );
       expect(cookieMock).not.toHaveBeenCalled();
-      expect(redirectMock).not.toHaveBeenCalled();
     });
 
     it('should handle network errors gracefully', async () => {
@@ -95,15 +123,15 @@ describe('AuthenticateController', () => {
         password: 'Password123!',
       };
 
-      vi.mocked(LoginService.prototype.login).mockRejectedValue(
+      vi.mocked(mockLoginService.login).mockRejectedValue(
         new Error('Network Error: ECONNREFUSED'),
       );
 
-      await controller.renderLogin(mockReq as Request, mockRes as Response);
+      await controller.performLogin(mockReq as Request, mockRes as Response);
 
-      expect(renderMock).toHaveBeenCalledWith('login', {
-        error: 'Invalid Credentials',
-      });
+      expect(redirectMock).toHaveBeenCalledWith(
+        '/login?error=Invalid%20Credentials',
+      );
     });
 
     it('should handle empty token response', async () => {
@@ -112,16 +140,14 @@ describe('AuthenticateController', () => {
         password: 'Password123!',
       };
 
-      vi.mocked(LoginService.prototype.login).mockResolvedValue('');
+      vi.mocked(mockLoginService.login).mockResolvedValue('');
 
-      await controller.renderLogin(mockReq as Request, mockRes as Response);
+      await controller.performLogin(mockReq as Request, mockRes as Response);
 
-      expect(renderMock).toHaveBeenCalledWith('login', {
-        error: 'Invalid Credentials',
-      });
-
+      expect(redirectMock).toHaveBeenCalledWith(
+        '/login?error=Invalid%20Credentials',
+      );
       expect(cookieMock).not.toHaveBeenCalled();
-      expect(redirectMock).not.toHaveBeenCalled();
     });
   });
 

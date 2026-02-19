@@ -6,11 +6,9 @@ export default function authenticationRouter(
 ) {
   const router = Router();
 
-  router.get('/login', (req, res) => {
-    res.render('login', { title: 'Sign In - Kainos Job Roles' });
-  });
+  router.get('/login', (req, res) => authController.renderLoginPage(req, res));
 
-  router.post('/login', (req, res) => authController.renderLogin(req, res));
+  router.post('/login', (req, res) => authController.performLogin(req, res));
 
   router.post('/logout', (req, res) => authController.performLogout(req, res));
 

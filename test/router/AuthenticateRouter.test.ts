@@ -17,7 +17,8 @@ describe('AuthenticateRouter', () => {
 
   beforeEach(() => {
     mockAuthController = {
-      renderLogin: vi.fn(),
+      renderLoginPage: vi.fn(),
+      performLogin: vi.fn(),
       performLogout: vi.fn(),
     } as unknown as AuthenticateController;
 

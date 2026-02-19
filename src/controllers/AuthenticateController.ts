@@ -1,20 +1,25 @@
 import type { Request, Response } from 'express';
-import { LoginService } from '../services/LoginService';
-
-const loginService = new LoginService();
+import type { LoginService } from '../services/LoginService';
 
 export class AuthenticateController {
-  async renderLogin(req: Request, res: Response) {
+  constructor(private loginService: LoginService) {}
+  async renderLoginPage(req: Request, res: Response) {
+    const errorMessage = req.query.error as string;
+    res.render('login', {
+      title: 'Sign In - Kainos Job Roles',
+      error: errorMessage,
+    });
+  }
+
+  async performLogin(req: Request, res: Response) {
     const { email, password } = req.body;
 
     try {
-      const token = await loginService.login(email, password);
+      const token = await this.loginService.login(email, password);
 
       // Validate token exists and is a non-empty string
       if (typeof token !== 'string' || token.length === 0) {
-        return res.render('login', {
-          error: 'Invalid Credentials',
-        });
+        return res.redirect('/login?error=Invalid%20Credentials');
       }
 
       res.cookie('token', token, {
@@ -26,9 +31,7 @@ export class AuthenticateController {
 
       res.redirect('/job-roles');
     } catch (error) {
-      return res.render('login', {
-        error: 'Invalid Credentials',
-      });
+      return res.redirect('/login?error=Invalid%20Credentials');
     }
   }
 
