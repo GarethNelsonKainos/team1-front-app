@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
 import authenticateJWT from '../middleware/AuthMiddleware';
+import { JobRoleStatus } from '../models/JobRole';
 import type { JobRoleService } from '../services/JobRoleService';
 import {
   isAddJobRoleEnabled,
@@ -47,12 +48,30 @@ export default function JobRoleController(
           jobRole.closingDate,
         );
 
+        // Calculate job status message based on conditions
+        let jobStatusMessage = '';
+        const user = res.locals.user;
+
+        if (!user) {
+          jobStatusMessage =
+            '<a href="/login" class="text-blue-700 underline">Sign in</a> to apply';
+        } else if (!isJobApplicationsEnabled()) {
+          jobStatusMessage = 'Job applications are currently unavailable';
+        } else if (
+          jobRole.status !== JobRoleStatus.Open ||
+          (jobRole.openPositions ?? 0) <= 0
+        ) {
+          jobStatusMessage = 'This position is no longer available';
+        } else {
+          jobStatusMessage = `<a href="/job-roles/${jobRole.jobRoleId}/apply" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-colors">Apply Now</a>`;
+        }
+
         res.render('job-role-information', {
           title: jobRole.roleName,
           jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
           isJobApplicationsEnabled: isJobApplicationsEnabled(),
-          user: res.locals.user,
+          jobStatusMessage: jobStatusMessage,
         });
       } catch (error) {
         console.error('Error fetching job role information:', error);
@@ -99,7 +118,7 @@ export default function JobRoleController(
   );
 
   app.post(
-    '/job-roles/:id/apply',
+    '/application/:id/apply',
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
@@ -133,8 +152,16 @@ export default function JobRoleController(
           formData.append('jobRoleId', jobRoleId);
 
           // Forward the application + CV to backend API
-          // authenticateJWT middleware already set Authorization header in axios defaults
-          const response = await axios.post('/api/applications');
+          const response = await axios.post(
+            `${API_BASE_URL}/api/applications`,
+            formData,
+            {
+              headers: {
+                ...formData.getHeaders(),
+                Authorization: `Bearer ${authToken}`,
+              },
+            },
+          );
 
           // Redirect to success page
           res.redirect('/application-success');
