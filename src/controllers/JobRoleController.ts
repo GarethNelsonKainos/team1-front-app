@@ -36,8 +36,7 @@ export default function JobRoleController(
       const idParam = Array.isArray(req.params.id)
         ? req.params.id[0]
         : req.params.id;
-      const { jobRole, canDelete } =
-        await jobRoleService.getJobRoleById(idParam);
+      const { jobRole } = await jobRoleService.getJobRoleById(idParam);
 
       const normalizedJobRole = jobRole;
 
@@ -49,7 +48,7 @@ export default function JobRoleController(
         title: jobRole.roleName,
         jobRole: normalizedJobRole,
         formattedClosingDate: formattedClosingDate,
-        canDelete,
+        canDelete: true,
         apiBaseUrl: API_BASE_URL,
       });
     } catch (error) {
@@ -58,6 +57,32 @@ export default function JobRoleController(
         title: 'Error',
         message: 'Unable to load job role information. Please try again later.',
       });
+    }
+  });
+
+  app.get(
+    '/job-roles/:id/confirm-delete',
+    async (req: Request, res: Response) => {
+      // get the job id
+      // get job info
+      // render confirm delete page with info
+      res.render('confirm-delete');
+    },
+  );
+
+  // This will need to be edited when the authentication for the frontend is implemented,
+  // as we will need to pass the token from the frontend to the backend to verify that
+  // the user is an admin before allowing them to delete a job role
+  app.delete('/job-roles/:id/', async (req: Request, res: Response) => {
+    if (!req.user?.isAdmin) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    const id = Number(req.params.id);
+    try {
+      await jobRoleService.deleteJobRole(id, req.user.token);
+      res.status(204).send();
+    } catch (e) {
+      res.status(500).json({ error: 'Failed to delete role' });
     }
   });
 }

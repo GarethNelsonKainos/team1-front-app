@@ -37,8 +37,7 @@
                                     <button
                                         type="button"
                                         class="text-red-700 underline hover:text-red-900"
-                                        data-delete-role
-                                        data-role-id="{{ role.jobRoleId }}"
+                                        onclick="confirmDelete({{ role.jobRoleId }})"
                                     >
                                         Delete
                                     </button>
@@ -50,5 +49,20 @@
             </table>
         {% endif %}
     </div>
-    <script src="/delete-role.js"></script>
+        <script>
+            function confirmDelete(id) {
+                if (confirm('Are you sure you want to delete this role?')) {
+                    fetch(`/job-roles/${id}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'CSRF-Token': '{{ csrfToken }}'
+                        }
+                    })
+                    .then(res => {
+                        if (res.ok) window.location.reload();
+                        else alert('Failed to delete role');
+                    });
+                }
+            }
+        </script>
 {% endblock %}
