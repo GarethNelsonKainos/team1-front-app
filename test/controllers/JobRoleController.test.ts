@@ -13,6 +13,7 @@ import type {
   JobRoleService,
 } from '../../src/services/JobRoleService';
 import * as FeatureFlags from '../../src/utils/FeatureFlags';
+import UserRole from '../../src/models/UserRole';
 
 // Mock external dependencies
 vi.mock('../../src/utils/FeatureFlags');
@@ -21,7 +22,7 @@ vi.mock('../../src/utils/date-formatter', () => ({
 }));
 
 // Global variable to control mock user role
-let mockUserRole = 'Admin'; // Default to admin for most tests
+let mockUserRole = UserRole.Admin; // Default to admin for most tests
 
 vi.mock('../../src/middleware/AuthMiddleware', () => ({
   default: (req: unknown, res: unknown, next: () => void) => {
@@ -32,6 +33,7 @@ vi.mock('../../src/middleware/AuthMiddleware', () => ({
     next();
   },
 }));
+
 vi.mock('multer', () => {
   const mockMulter = vi.fn(() => ({
     single: vi.fn(
@@ -55,6 +57,9 @@ describe('JobRoleController', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
+
+    // Reset user role to default
+    mockUserRole = UserRole.Admin;
 
     // Set up environment variables
     process.env.API_BASE_URL = 'http://localhost:3001';
@@ -106,12 +111,11 @@ describe('JobRoleController', () => {
       responsibilities: 'Test responsibilities',
     };
 
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-      canDelete: true,
-      jobRole: mockJobRole,
-    });
+    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
     const response = await request(app).get('/job-roles/1/confirm-delete');
+
+    console.log(response.body);
 
     expect(response.status).toBe(200);
     expect(response.body.view).toBe('confirm-delete');
@@ -123,8 +127,6 @@ describe('JobRoleController', () => {
   });
 
   it('should delete role and redirect on POST /job-roles/:id/delete with admin user', async () => {
-    mockUserRole = 'Admin'; // Set to admin
-
     vi.mocked(mockJobRoleService.deleteJobRole).mockResolvedValue(undefined);
 
     const response = await request(app)
@@ -140,7 +142,7 @@ describe('JobRoleController', () => {
   });
 
   it('should return 403 on delete attempt by non-admin user', async () => {
-    mockUserRole = 'Applicant'; // Set to non-admin
+    mockUserRole = UserRole.User; // Set to non-admin
 
     const response = await request(app)
       .post('/job-roles/1/delete')
@@ -200,16 +202,13 @@ describe('JobRoleController', () => {
       openPositions: 2,
     };
 
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-      canDelete: true,
-      jobRole: mockJobRole,
-    });
+    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
-    vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
-      false,
-    );
+    vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(false);
 
     const response = await request(app).get('/job-roles/2');
+
+    console.log(response.body);
 
     expect(response.status).toBe(200);
     expect(response.body.view).toBe('job-role-information');
@@ -243,9 +242,7 @@ describe('JobRoleController', () => {
       closingDate: '2026-02-28',
     };
 
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-      jobRole: mockJobRole,
-    } as JobRoleDetailResponse);
+    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
     const response = await request(app).get('/job-roles/1/apply');
 
@@ -268,10 +265,7 @@ describe('JobRoleController', () => {
         closingDate: '2026-02-28',
       };
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-        canDelete: true,
-        jobRole: mockJobRole,
-      } as JobRoleDetailResponse);
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
       vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
         false,
@@ -313,10 +307,7 @@ describe('JobRoleController', () => {
         closingDate: '2026-02-28',
       };
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-        canDelete: true,
-        jobRole: mockJobRole,
-      });
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
       const response = await request(app).get('/job-roles/1/apply');
 
@@ -363,10 +354,7 @@ describe('JobRoleController', () => {
         closingDate: '2026-02-28',
       };
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-        canDelete: true,
-        jobRole: mockJobRole,
-      });
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
 
       vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
         false,

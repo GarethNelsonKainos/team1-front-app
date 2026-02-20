@@ -122,7 +122,7 @@ describe('JobRoleService', () => {
 
     const result = await service.getJobRoleById('1');
 
-    expect(result).toEqual({ canDelete: false, jobRole: mockJobRole });
+    expect(result).toEqual(mockJobRole);
     expect(mockedGet).toHaveBeenCalledWith(
       'http://localhost:3001/api/job-roles/1',
     );
