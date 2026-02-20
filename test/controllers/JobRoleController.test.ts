@@ -537,7 +537,7 @@ describe('JobRoleController', () => {
       expect(mockRes.redirect).toHaveBeenCalledWith('/job-roles');
     });
 
-    it('should return 403 when feature disabled', async () => {
+    it('should return 404 when feature disabled', async () => {
       vi.spyOn(FeatureFlags, 'isAddJobRoleEnabled').mockReturnValue(false);
 
       const mockReq = createMockRequest({ body: { roleName: 'Test' } });
@@ -545,7 +545,7 @@ describe('JobRoleController', () => {
 
       await routes['POST:/add-role'](mockReq, mockRes);
 
-      expect(mockRes.status).toHaveBeenCalledWith(403);
+      expect(mockRes.status).toHaveBeenCalledWith(404);
     });
 
     it('should return 403 for non-admin users', async () => {
