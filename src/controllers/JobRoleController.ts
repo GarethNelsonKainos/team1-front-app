@@ -4,6 +4,7 @@ import FormData from 'form-data';
 import multer from 'multer';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import { JobRoleStatus } from '../models/JobRole';
+import { UserRole } from '../models/UserRole';
 import type { JobRoleService } from '../services/JobRoleService';
 import {
   isAddJobRoleEnabled,
@@ -231,7 +232,7 @@ export default function JobRoleController(
         return;
       }
 
-      if (!res.locals.user || res.locals.user.userRole !== 2) {
+      if (!res.locals.user || res.locals.user.userRole !== UserRole.ADMIN) {
         res.status(403).render('error', {
           title: 'Access Denied',
           message: 'You do not have permission to access this page.',
@@ -274,7 +275,7 @@ export default function JobRoleController(
           return;
         }
 
-        if (!res.locals.user || res.locals.user.userRole !== 2) {
+        if (!res.locals.user || res.locals.user.userRole !== UserRole.ADMIN) {
           res.status(403).render('error', {
             title: 'Access Denied',
             message: 'You do not have permission to access this page.',

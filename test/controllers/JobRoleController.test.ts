@@ -3,6 +3,7 @@ import type { Application, NextFunction, Request, Response } from 'express';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import JobRoleController from '../../src/controllers/JobRoleController';
 import { JobRoleStatus } from '../../src/models/JobRole';
+import { UserRole } from '../../src/models/UserRole';
 import type { JobRoleService } from '../../src/services/JobRoleService';
 import * as FeatureFlags from '../../src/utils/FeatureFlags';
 
@@ -67,7 +68,7 @@ describe('JobRoleController', () => {
       ...overrides,
     }) as Request;
 
-  const createMockResponse = (userRole = 2): Response => {
+  const createMockResponse = (userRole = UserRole.ADMIN): Response => {
     const res = {
       render: vi.fn(),
       status: vi.fn().mockReturnThis(),
