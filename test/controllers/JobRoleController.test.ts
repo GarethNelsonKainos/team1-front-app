@@ -98,10 +98,10 @@ describe('JobRoleController', () => {
       ];
 
       vi.mocked(mockJobRoleService.getJobRoles).mockResolvedValue({
-        canDelete: true,  // or false, depending on test scenario
-        jobRoles: mockJobRoles
+        canDelete: true, // or false, depending on test scenario
+        jobRoles: mockJobRoles,
       });
-      
+
       await routes['GET:/job-roles'](mockReq, mockRes);
 
       expect(mockRes.render).toHaveBeenCalledWith('job-role-list', {
@@ -179,7 +179,9 @@ describe('JobRoleController', () => {
         openPositions: 5,
       });
 
-      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(false);
+      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
+        false,
+      );
 
       await routes['GET:/job-roles/:id'](mockReq, mockRes);
 
