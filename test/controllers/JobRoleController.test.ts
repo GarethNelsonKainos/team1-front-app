@@ -6,7 +6,6 @@ import { JobRoleStatus } from '../../src/models/JobRole';
 import { UserRole } from '../../src/models/UserRole';
 import type { JobRoleService } from '../../src/services/JobRoleService';
 import * as FeatureFlags from '../../src/utils/FeatureFlags';
-import UserRole from '../../src/models/UserRole';
 
 vi.mock('axios');
 vi.mock('../../src/services/JobRoleService');

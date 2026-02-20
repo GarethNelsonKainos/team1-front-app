@@ -1,8 +1,8 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { Band } from '../models/Band';
 import type { Capability } from '../models/Capability';
 import type { CreateJobRoleRequest } from '../models/CreateJobRoleRequest';
-import { API_BASE_URL } from '../config';
 import type { JobRole } from '../models/JobRole';
 import type { Location } from '../models/Location';
 

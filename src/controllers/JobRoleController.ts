@@ -13,8 +13,6 @@ import {
 } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
-
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
