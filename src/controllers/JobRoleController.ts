@@ -38,9 +38,15 @@ export default function JobRoleController(
       try {
         const jobRoles = await jobRoleService.getJobRoles();
 
+        // Format closing dates for all job roles
+        const formattedJobRoles = jobRoles.map(role => ({
+          ...role,
+          closingDate: formatTimestampToDateString(role.closingDate)
+        }));
+
         res.render('job-role-list', {
           title: 'Available Job Roles',
-          jobRoles: jobRoles,
+          jobRoles: formattedJobRoles,
           user: res.locals.user,
         });
       } catch (error: unknown) {
