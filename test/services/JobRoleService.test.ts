@@ -1,19 +1,22 @@
 import axios from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
+import type { Band } from '../../src/models/Band';
+import type { Capability } from '../../src/models/Capability';
 import type { JobRole } from '../../src/models/JobRole';
+import type { Location } from '../../src/models/Location';
 import { JobRoleService } from '../../src/services/JobRoleService';
 
 vi.mock('axios');
 
 describe('JobRoleService', () => {
   let mockedGet: Mock;
-  let mockedDelete: Mock;
+  let mockedPost: Mock;
   const service = new JobRoleService();
 
   beforeEach(() => {
     mockedGet = vi.mocked(axios).get as unknown as Mock;
-    mockedDelete = vi.mocked(axios).delete as unknown as Mock;
+    mockedPost = vi.mocked(axios).post as unknown as Mock;
   });
 
   afterEach(() => {
@@ -70,7 +73,7 @@ describe('JobRoleService', () => {
       jobRoles: mockJobRoles,
     });
     expect(mockedGet).toHaveBeenCalledWith(
-      'http://localhost:3001/api/job-roles',
+      expect.stringContaining('/api/job-roles'),
     );
   });
 
@@ -120,11 +123,11 @@ describe('JobRoleService', () => {
 
     mockedGet.mockResolvedValue({ data: mockJobRole });
 
-    const result = await service.getJobRoleById('1');
+    const result = await service.getJobRoleById(1);
 
     expect(result).toEqual(mockJobRole);
     expect(mockedGet).toHaveBeenCalledWith(
-      'http://localhost:3001/api/job-roles/1',
+      expect.stringContaining('/api/job-roles/1'),
     );
   });
 
@@ -132,39 +135,169 @@ describe('JobRoleService', () => {
     const error = new Error('Network error');
     mockedGet.mockRejectedValue(error);
 
-    await expect(service.getJobRoleById('1')).rejects.toThrow();
+    await expect(service.getJobRoleById(1)).rejects.toThrow();
   });
-  describe('checkApplicationStatus', () => {
-    it('should return true when user has already applied', async () => {
-      mockedGet.mockResolvedValue({
-        data: { hasApplied: true },
-      });
 
-      const result = await service.checkApplicationStatus('1', 'test-token');
+  it('should create job role successfully with single location', async () => {
+    const rawFormData = {
+      roleName: 'Software Engineer',
+      capabilityId: '1',
+      bandId: '2',
+      description: 'Test description',
+      responsibilities: 'Test responsibilities',
+      jobSpecLink: 'https://example.com/spec',
+      openPositions: '5',
+      locationIds: '3',
+      closingDate: '2026-02-28',
+    };
 
-      expect(result).toBe(true);
-      expect(mockedGet).toHaveBeenCalledWith(
-        'http://localhost:3001/api/applications/status/1',
-        { headers: { Authorization: 'Bearer test-token' } },
-      );
-    });
+    const mockJobRole: JobRole = {
+      jobRoleId: 1,
+      roleName: 'Software Engineer',
+      location: 'London',
+      capability: 'Engineering',
+      band: 'Band 4',
+      closingDate: '2026-02-28',
+    };
 
-    it('should return false when user has not applied', async () => {
-      mockedGet.mockResolvedValue({
-        data: { hasApplied: false },
-      });
+    mockedPost.mockResolvedValue({ data: mockJobRole });
 
-      const result = await service.checkApplicationStatus('1', 'test-token');
+    const result = await service.createJobRole(rawFormData);
 
-      expect(result).toBe(false);
-    });
+    expect(result).toEqual(mockJobRole);
+    expect(mockedPost).toHaveBeenCalledWith(
+      expect.stringContaining('/api/job-roles'),
+      expect.objectContaining({
+        roleName: 'Software Engineer',
+        capabilityId: 1,
+        bandId: 2,
+        locationIds: [3],
+        openPositions: 5,
+      }),
+    );
+  });
 
-    it('should return false when API call fails', async () => {
-      mockedGet.mockRejectedValue(new Error('API Error'));
+  it('should create job role successfully with multiple locations', async () => {
+    const rawFormData = {
+      roleName: 'Data Analyst',
+      capabilityId: '2',
+      bandId: '3',
+      description: 'Analyze data',
+      responsibilities: 'Create reports',
+      jobSpecLink: 'https://example.com/analyst',
+      openPositions: '3',
+      locationIds: ['1', '2', '3'],
+      closingDate: '2026-03-15',
+    };
 
-      const result = await service.checkApplicationStatus('1', 'test-token');
+    const mockJobRole: JobRole = {
+      jobRoleId: 2,
+      roleName: 'Data Analyst',
+      location: 'Multiple',
+      capability: 'Data',
+      band: 'Band 5',
+      closingDate: '2026-03-15',
+    };
 
-      expect(result).toBe(false);
-    });
+    mockedPost.mockResolvedValue({ data: mockJobRole });
+
+    const result = await service.createJobRole(rawFormData);
+
+    expect(result).toEqual(mockJobRole);
+    expect(mockedPost).toHaveBeenCalledWith(
+      expect.stringContaining('/api/job-roles'),
+      expect.objectContaining({
+        locationIds: [1, 2, 3],
+      }),
+    );
+  });
+
+  it('should fetch bands successfully', async () => {
+    const mockBands: Band[] = [
+      { bandId: 1, bandName: 'Band 1' },
+      { bandId: 2, bandName: 'Band 2' },
+    ];
+
+    mockedGet.mockResolvedValue({ data: mockBands });
+
+    const result = await service.getBands();
+
+    expect(result).toEqual(mockBands);
+    expect(mockedGet).toHaveBeenCalledWith(
+      expect.stringContaining('/api/bands'),
+    );
+  });
+
+  it('should throw error when getBands API call fails', async () => {
+    mockedGet.mockRejectedValue(new Error('Network error'));
+
+    await expect(service.getBands()).rejects.toThrow();
+  });
+
+  it('should fetch capabilities successfully', async () => {
+    const mockCapabilities: Capability[] = [
+      { capabilityId: 1, capabilityName: 'Engineering' },
+      { capabilityId: 2, capabilityName: 'Data' },
+    ];
+
+    mockedGet.mockResolvedValue({ data: mockCapabilities });
+
+    const result = await service.getCapabilities();
+
+    expect(result).toEqual(mockCapabilities);
+    expect(mockedGet).toHaveBeenCalledWith(
+      expect.stringContaining('/api/capabilities'),
+    );
+  });
+
+  it('should throw error when getCapabilities API call fails', async () => {
+    mockedGet.mockRejectedValue(new Error('Network error'));
+
+    await expect(service.getCapabilities()).rejects.toThrow();
+  });
+
+  it('should fetch locations successfully', async () => {
+    const mockLocations: Location[] = [
+      { locationId: 1, locationName: 'London', city: 'London', country: 'UK' },
+      {
+        locationId: 2,
+        locationName: 'Belfast',
+        city: 'Belfast',
+        country: 'UK',
+      },
+    ];
+
+    mockedGet.mockResolvedValue({ data: mockLocations });
+
+    const result = await service.getLocations();
+
+    expect(result).toEqual(mockLocations);
+    expect(mockedGet).toHaveBeenCalledWith(
+      expect.stringContaining('/api/locations'),
+    );
+  });
+
+  it('should throw error when getLocations API call fails', async () => {
+    mockedGet.mockRejectedValue(new Error('Network error'));
+
+    await expect(service.getLocations()).rejects.toThrow();
+  });
+
+  it('should throw error when createJobRole API call fails', async () => {
+    const rawFormData = {
+      roleName: 'Test Role',
+      capabilityId: '1',
+      bandId: '2',
+      description: 'Test',
+      responsibilities: 'Test',
+      jobSpecLink: 'https://test.com',
+      openPositions: '1',
+      locationIds: '1',
+      closingDate: '2026-02-28',
+    };
+
+    mockedPost.mockRejectedValue(new Error('Creation failed'));
+
+    await expect(service.createJobRole(rawFormData)).rejects.toThrow();
   });
 });

@@ -5,12 +5,16 @@ import multer from 'multer';
 import { API_BASE_URL } from '../config';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import { JobRoleStatus } from '../models/JobRole';
-import UserRole from '../models/UserRole';
+import { UserRole } from '../models/UserRole';
 import type { JobRoleService } from '../services/JobRoleService';
-import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
+import {
+  isAddJobRoleEnabled,
+  isJobApplicationsEnabled,
+} from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
 
-// Configure multer for file uploads
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
@@ -34,19 +38,18 @@ export default function JobRoleController(
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
-        const token = req.cookies.token;
-        const response = await jobRoleService.getJobRoles();
+        const jobRoles = await jobRoleService.getJobRoles();
 
-        const jobRoles = response.jobRoles.map((jobRole) => {
-          const formattedClosingDate = formatTimestampToDateString(
-            jobRole.closingDate,
-          );
-          return { ...jobRole, formattedClosingDate: formattedClosingDate };
-        });
+        const formattedJobRoles = jobRoles.map((role) => ({
+          ...role,
+          closingDate: formatTimestampToDateString(role.closingDate),
+        }));
 
         res.render('job-role-list', {
           title: 'Available Job Roles',
-          jobRoles: jobRoles,
+          jobRoles: formattedJobRoles,
+          user: res.locals.user,
+          UserRole: UserRole,
           canDelete: response.canDelete,
         });
       } catch (error: unknown) {
@@ -64,9 +67,7 @@ export default function JobRoleController(
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
-        const idParam = req.params.id as string;
-        const token = req.cookies.token;
-
+        const idParam = Number(req.params.id);
         const jobRole = await jobRoleService.getJobRoleById(idParam);
         const hasApplied = await jobRoleService.checkApplicationStatus(
           idParam,
@@ -194,7 +195,7 @@ export default function JobRoleController(
           return;
         }
 
-        const idParam = req.params.id as string;
+        const idParam = Number(req.params.id);
 
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
@@ -289,6 +290,105 @@ export default function JobRoleController(
           title: 'Error',
           message:
             'Unable to process application request. Please try again later.',
+        });
+      }
+    },
+  );
+
+  app.get('/add-role', authenticateJWT, async (req: Request, res: Response) => {
+    try {
+      if (!isAddJobRoleEnabled()) {
+        res.status(404).render('error', {
+          title: 'Feature Not Available',
+          message: 'Adding job roles is currently not available.',
+        });
+        return;
+      }
+
+      if (!res.locals.user || res.locals.user.userRole !== UserRole.ADMIN) {
+        res.status(403).render('error', {
+          title: 'Access Denied',
+          message: 'You do not have permission to access this page.',
+        });
+        return;
+      }
+
+      const [bands, capabilities, locations] = await Promise.all([
+        jobRoleService.getBands(),
+        jobRoleService.getCapabilities(),
+        jobRoleService.getLocations(),
+      ]);
+
+      res.render('add-role', {
+        title: 'Add New Job Role',
+        user: res.locals.user,
+        bands,
+        capabilities,
+        locations,
+      });
+    } catch (error) {
+      console.error('Error in JobRoleController:', error);
+      res.status(500).render('error', {
+        title: 'Error',
+        message: 'Unable to load add role page. Please try again later.',
+      });
+    }
+  });
+
+  app.post(
+    '/add-role',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        if (!isAddJobRoleEnabled()) {
+          res.status(404).render('error', {
+            title: 'Feature Not Available',
+            message: 'Adding job roles is currently not available.',
+          });
+          return;
+        }
+
+        if (!res.locals.user || res.locals.user.userRole !== UserRole.ADMIN) {
+          res.status(403).render('error', {
+            title: 'Access Denied',
+            message: 'You do not have permission to access this page.',
+          });
+          return;
+        }
+
+        // Pass the raw body to the service
+        await jobRoleService.createJobRole(req.body);
+
+        // Redirect to success page
+        res.redirect('/job-roles');
+      } catch (error) {
+        console.error('Error creating job role:', error);
+
+        // Re-fetch dropdown data to re-render form
+        const [bands, capabilities, locations] = await Promise.all([
+          jobRoleService.getBands(),
+          jobRoleService.getCapabilities(),
+          jobRoleService.getLocations(),
+        ]);
+
+        let errorMessage = 'Failed to create job role. Please try again.';
+
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 409) {
+            errorMessage = 'A job role with this name already exists.';
+          } else if (error.response?.data?.error) {
+            errorMessage = error.response.data.error;
+          }
+        }
+
+        res.render('add-role', {
+          title: 'Add New Job Role',
+          user: res.locals.user,
+          bands,
+          capabilities,
+          locations,
+          error: errorMessage,
+          formData: req.body, // Re-populate form with submitted data
         });
       }
     },

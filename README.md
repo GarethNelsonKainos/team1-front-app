@@ -8,8 +8,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Server runs on http://localhost:${PORT} (default is http://localhost:3001 when `PORT` is not set or is 3001 in `.env`)
-Uses Nunjucks templates + Tailwind CSS (CDN)
+Frontend dev server runs on http://localhost:${PORT} (default is http://localhost:3000 when `PORT` is not set or is 3000 in `.env`). The backend API (configured via `API_BASE_URL`) defaults to http://localhost:3001 unless otherwise specified.
 
 ## Linting
 
@@ -19,16 +18,18 @@ This project uses **Biome** for fast, comprehensive code linting and formatting.
 - Follows recommended rules with consistent formatting
 - Integrates with CI/CD pipeline
 
-### Available Commands
+Available Commands:
 ```bash
 npm run check        # Check for linting issues
 npm run check:fix    # Automatically fix linting issues
 ```
 
 ## Testing
-
+This project uses **Vitest** and **Supertest** for unit and coverage tests
 Tests are located in the `/test/` directory and mirror the `/src/` structure:
-- Unit tests use Vitest + Supertest
-- Run `npm test` for single test run
-- Run `npm run test:coverage` for coverage report with 80% thresholds
-- Coverage reports generated in `/coverage/`
+
+Available Commands:
+```bash
+npm run test             # Run all tests and output results
+npm run test:coverage    # Run all tests and display coverage report with 80% thresholds
+```

@@ -1,0 +1,192 @@
+{% extends "layout.njk" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
+    <h1 class="text-3xl font-bold mb-6" style="color: var(--brand-primary);">Add New Job Role</h1>
+    
+    <form id="addJobRoleForm" method="POST" action="/add-role" class="space-y-6">
+        <!-- Job Role Name -->
+        <div>
+            <label for="roleName" class="block text-sm font-medium text-gray-700 mb-2">
+                Job Role Name <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="text" 
+                id="roleName" 
+                name="roleName" 
+                required
+                minlength="3"
+                maxlength="100"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="e.g. Software Engineer"
+            >
+            <span id="roleNameError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Capability Dropdown -->
+        <div>
+            <label for="capability" class="block text-sm font-medium text-gray-700 mb-2">
+                Capability <span class="text-red-500">*</span>
+            </label>
+            <select 
+                id="capability" 
+                name="capabilityId" 
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+                <option value="">-- Select Capability --</option>
+                {% for capability in capabilities %}
+                <option value="{{ capability.capabilityId }}">{{ capability.capabilityName }}</option>
+                {% endfor %}
+            </select>
+            <span id="capabilityError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Band Dropdown -->
+        <div>
+            <label for="band" class="block text-sm font-medium text-gray-700 mb-2">
+                Band <span class="text-red-500">*</span>
+            </label>
+            <select 
+                id="band" 
+                name="bandId" 
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+                <option value="">-- Select Band --</option>
+                {% for band in bands %}
+                <option value="{{ band.bandId }}">{{ band.bandName }}</option>
+                {% endfor %}
+            </select>
+            <span id="bandError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Description -->
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                Description <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+                id="description" 
+                name="description" 
+                required
+                rows="4"
+                maxlength="500"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Brief summary of the role..."
+            ></textarea>
+            <span class="text-sm text-gray-500" id="summaryCount">0/500</span>
+            <span id="descriptionError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Job Spec Link -->
+        <div>
+            <label for="jobSpecLink" class="block text-sm font-medium text-gray-700 mb-2">
+                Job Specification Link <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="url" 
+                id="jobSpecLink" 
+                name="jobSpecLink" 
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="https://kainossoftwareltd.sharepoint.com/..."
+            >
+            <span id="jobSpecLinkError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Responsibilities -->
+        <div>
+            <label for="responsibilities" class="block text-sm font-medium text-gray-700 mb-2">
+                Responsibilities <span class="text-red-500">*</span>
+            </label>
+            <textarea 
+                id="responsibilities" 
+                name="responsibilities" 
+                required
+                rows="6"
+                maxlength="1000"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="List key responsibilities..."
+            ></textarea>
+            <span class="text-sm text-gray-500" id="responsibilitiesCount">0/1000</span>
+            <span id="responsibilitiesError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Number of Open Positions -->
+        <div>
+            <label for="openPositions" class="block text-sm font-medium text-gray-700 mb-2">
+                Number of Open Positions <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="number" 
+                id="openPositions" 
+                name="openPositions" 
+                required
+                min="1"
+                max="100"
+                value="1"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+            <span id="openPositionsError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Location (Multiselect) -->
+        <div>
+            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">
+                Location(s) <span class="text-red-500">*</span>
+            </label>
+            <select 
+                id="location" 
+                name="locationIds" 
+                multiple
+                required
+                size="5"
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+                {% for location in locations %}
+                <option value="{{ location.locationId }}">{{ location.locationName }}</option>
+                {% endfor %}
+            </select>
+            <p class="text-sm text-gray-500 mt-1">Hold Ctrl (Cmd on Mac) to select multiple locations</p>
+            <span id="locationError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Closing Date -->
+        <div>
+            <label for="closingDate" class="block text-sm font-medium text-gray-700 mb-2">
+                Closing Date <span class="text-red-500">*</span>
+            </label>
+            <input 
+                type="date" 
+                id="closingDate" 
+                name="closingDate" 
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+            <span id="closingDateError" class="error-message hidden text-red-500 text-sm mt-1 block"></span>
+        </div>
+
+        <!-- Error/Success Messages -->
+        <div id="formMessage" class="hidden p-4 rounded-md"></div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 pt-4">
+            <button 
+                type="submit" 
+                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+                Add Job Role
+            </button>
+            <a 
+                href="/job-roles" 
+                class="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script src="/js/add-role.js"></script>
+{% endblock %}

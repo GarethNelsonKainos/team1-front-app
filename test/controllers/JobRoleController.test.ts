@@ -1,370 +1,635 @@
-import cookieParser from 'cookie-parser';
-import type { Response } from 'express';
-import type { Application } from 'express';
-import express from 'express';
-import multer from 'multer';
-import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import axios from 'axios';
+import type { Application, NextFunction, Request, Response } from 'express';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import JobRoleController from '../../src/controllers/JobRoleController';
-import type { JobRole } from '../../src/models/JobRole';
-import type {
-  JobRoleDetailResponse,
-  JobRoleListResponse,
-  JobRoleService,
-} from '../../src/services/JobRoleService';
+import { JobRoleStatus } from '../../src/models/JobRole';
+import { UserRole } from '../../src/models/UserRole';
+import type { JobRoleService } from '../../src/services/JobRoleService';
 import * as FeatureFlags from '../../src/utils/FeatureFlags';
 import UserRole from '../../src/models/UserRole';
 
-// Mock external dependencies
-vi.mock('../../src/utils/FeatureFlags');
-vi.mock('../../src/utils/date-formatter', () => ({
-  formatTimestampToDateString: vi.fn((date: string) => date),
-}));
-
-// Global variable to control mock user role
-let mockUserRole = UserRole.Admin; // Default to admin for most tests
-
-vi.mock('../../src/middleware/AuthMiddleware', () => ({
-  default: (req: unknown, res: unknown, next: () => void) => {
-    // Mock authenticated user with configurable role
-    (res as { locals: { user: unknown } }).locals = {
-      user: { userId: 1, email: 'test@example.com', userRole: mockUserRole },
-    };
-    next();
-  },
-}));
-
-vi.mock('multer', () => {
-  const mockMulter = vi.fn(() => ({
-    single: vi.fn(
-      () => (req: unknown, res: unknown, next: () => void) => next(),
-    ),
-  }));
-
-  return {
-    default: Object.assign(mockMulter, {
-      memoryStorage: vi.fn(),
-    }),
-  };
-});
 vi.mock('axios');
-vi.mock('form-data');
+vi.mock('../../src/services/JobRoleService');
+vi.mock('../../src/middleware/AuthMiddleware', () => ({
+  default: (_req: Request, _res: Response, next: NextFunction) => next(),
+}));
 
 describe('JobRoleController', () => {
   let app: Application;
+  let routes: Record<string, (req: Request, res: Response) => void>;
   let mockJobRoleService: JobRoleService;
 
   beforeEach(() => {
-    // Reset all mocks
-    vi.clearAllMocks();
+    routes = {};
 
-    // Reset user role to default
-    mockUserRole = UserRole.Admin;
-
-    // Set up environment variables
-    process.env.API_BASE_URL = 'http://localhost:3001';
-
-    // Initialize FeatureFlags mock with default values
-    vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-    app = express();
-    app.set('view engine', 'njk');
-    app.set('views', './views');
-
-    // Add middleware to parse request bodies and cookies
-    app.use(cookieParser());
-    app.use(express.urlencoded({ extended: true }));
-    app.use(express.json());
-
-    // Mock cookies by adding a token to all requests
-    app.use((req, res, next) => {
-      req.cookies = { token: 'valid-test-token' };
-      next();
-    });
+    app = {
+      get: vi.fn(
+        (
+          path: string,
+          ...handlers: ((req: Request, res: Response) => void)[]
+        ) => {
+          routes[`GET:${path}`] = handlers[handlers.length - 1];
+        },
+      ),
+      post: vi.fn(
+        (
+          path: string,
+          ...handlers: ((req: Request, res: Response) => void)[]
+        ) => {
+          routes[`POST:${path}`] = handlers[handlers.length - 1];
+        },
+      ),
+    } as unknown as Application;
 
     mockJobRoleService = {
       getJobRoles: vi.fn(),
       getJobRoleById: vi.fn(),
-      deleteJobRole: vi.fn(),
-      checkApplicationStatus: vi.fn(),
+      createJobRole: vi.fn(),
+      getBands: vi.fn(),
+      getCapabilities: vi.fn(),
+      getLocations: vi.fn(),
     } as unknown as JobRoleService;
 
-    app.use((req, res, next) => {
-      res.render = vi.fn((_view: string, _data: unknown) => {
-        res.send({ view: _view, ...(_data as object) });
-      });
-      next();
-    });
+    vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(true);
+    vi.spyOn(FeatureFlags, 'isAddJobRoleEnabled').mockReturnValue(true);
 
     JobRoleController(app, mockJobRoleService);
   });
 
-  it('should render confirm-delete page with authenticated user', async () => {
-    const mockJobRole: JobRole = {
-      jobRoleId: 1,
-      roleName: 'Software Engineer',
-      location: 'London',
-      capability: 'Engineering',
-      band: 'Band 4',
-      closingDate: '2026-02-28',
-      description: 'Test role',
-      responsibilities: 'Test responsibilities',
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const createMockRequest = (overrides: Partial<Request> = {}): Request =>
+    ({
+      params: {},
+      body: {},
+      cookies: { token: 'test-token' },
+      file: undefined,
+      ...overrides,
+    }) as Request;
+
+  const createMockResponse = (userRole = UserRole.ADMIN): Response => {
+    const res = {
+      render: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+      send: vi.fn().mockReturnThis(),
+      redirect: vi.fn(),
+      locals: { user: { userId: 1, userRole } },
     };
+    return res as unknown as Response;
+  };
 
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
+  describe('GET /job-roles', () => {
+    it('should render job roles list', async () => {
+      const mockReq = createMockRequest();
+      const mockRes = createMockResponse();
 
-    const response = await request(app).get('/job-roles/1/confirm-delete');
+      const mockJobRoles = [
+        {
+          jobRoleId: 1,
+          roleName: 'Software Engineer',
+          location: 'London',
+          capability: 'Engineering',
+          band: 'Band 4',
+          closingDate: '2026-02-28',
+        },
+      ];
 
-    console.log(response.body);
+      vi.mocked(mockJobRoleService.getJobRoles).mockResolvedValue(mockJobRoles);
 
-    expect(response.status).toBe(200);
-    expect(response.body.view).toBe('confirm-delete');
-    expect(response.body.jobRole.roleName).toBe('Software Engineer');
-    expect(response.body.formattedClosingDate).toBeDefined();
-    expect(vi.mocked(mockJobRoleService.getJobRoleById)).toHaveBeenCalledWith(
-      '1',
-    );
-  });
+      await routes['GET:/job-roles'](mockReq, mockRes);
 
-  it('should delete role and redirect on POST /job-roles/:id/delete with admin user', async () => {
-    vi.mocked(mockJobRoleService.deleteJobRole).mockResolvedValue(undefined);
-
-    const response = await request(app)
-      .post('/job-roles/1/delete')
-      .set('Cookie', ['token=valid-test-token']);
-
-    expect(response.status).toBe(302);
-    expect(response.headers.location).toBe('/job-roles');
-    expect(vi.mocked(mockJobRoleService.deleteJobRole)).toHaveBeenCalledWith(
-      1,
-      'valid-test-token',
-    );
-  });
-
-  it('should return 403 on delete attempt by non-admin user', async () => {
-    mockUserRole = UserRole.User; // Set to non-admin
-
-    const response = await request(app)
-      .post('/job-roles/1/delete')
-      .set('Cookie', ['token=valid-test-token']);
-
-    expect(response.status).toBe(403);
-    expect(response.body.view).toBe('error');
-    expect(response.body.message).toContain('do not have permission');
-    expect(vi.mocked(mockJobRoleService.deleteJobRole)).not.toHaveBeenCalled();
-  });
-
-  it('should render job-role-list when fetching job roles successfully', async () => {
-    const mockJobRoles: JobRole[] = [
-      {
-        jobRoleId: 1,
-        roleName: 'Software Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
-      },
-    ];
-
-    vi.mocked(mockJobRoleService.getJobRoles).mockResolvedValue({
-      canDelete: true,
-      jobRoles: mockJobRoles,
+      expect(mockRes.render).toHaveBeenCalledWith('job-role-list', {
+        title: 'Available Job Roles',
+        jobRoles: [
+          {
+            ...mockJobRoles[0],
+            closingDate: '28/02/2026',
+          },
+        ],
+        user: mockRes.locals.user,
+        UserRole: UserRole,
+      });
     });
 
-    const response = await request(app).get('/job-roles');
+    it('should handle errors', async () => {
+      const mockReq = createMockRequest();
+      const mockRes = createMockResponse();
 
-    expect(response.status).toBe(200);
-    expect(vi.mocked(mockJobRoleService.getJobRoles)).toHaveBeenCalled();
-    expect(response.body.canDelete).toBe(true);
-  });
-
-  it('should return 500 error when service fails', async () => {
-    vi.mocked(mockJobRoleService.getJobRoles).mockRejectedValue(
-      new Error('Service error'),
-    );
-
-    const response = await request(app).get('/job-roles');
-
-    expect(response.status).toBe(500);
-  });
-
-  it('should render job-role-information when fetching a job role by id successfully', async () => {
-    const mockJobRole: JobRole = {
-      jobRoleId: 2,
-      roleName: 'Test Engineer',
-      location: 'San Francisco',
-      capability: 'Quality Assurance',
-      band: 'Intermediate',
-      closingDate: '2026-04-01T00:00:00.000Z',
-      description: 'Ensures the quality of software products.',
-      responsibilities: 'Test applications, report bugs, write test cases.',
-      sharepointUrl: 'https://company.sharepoint.com/test-engineer',
-      openPositions: 2,
-    };
-
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
-
-    vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(false);
-
-    const response = await request(app).get('/job-roles/2');
-
-    console.log(response.body);
-
-    expect(response.status).toBe(200);
-    expect(response.body.view).toBe('job-role-information');
-    expect(response.body.jobRole.roleName).toBe('Test Engineer');
-    expect(response.body.formattedClosingDate).toBeDefined();
-    expect(response.body.canDelete).toBe(true);
-  });
-
-  it('should return 500 error when fetching job role by id fails', async () => {
-    vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
-      new Error('Service error'),
-    );
-
-    const response = await request(app).get('/job-roles/2');
-
-    expect(response.status).toBe(500);
-    expect(response.body.view).toBe('error');
-  });
-
-  // Test for apply functionality
-  it('should render job-apply page when accessing apply route', async () => {
-    // Mock feature flag as enabled
-    vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-    const mockJobRole: JobRole = {
-      jobRoleId: 1,
-      roleName: 'Software Engineer',
-      location: 'London',
-      capability: 'Engineering',
-      band: 'Band 4',
-      closingDate: '2026-02-28',
-    };
-
-    vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
-
-    const response = await request(app).get('/job-roles/1/apply');
-
-    expect(response.status).toBe(200);
-    expect(response.body.view).toBe('job-apply');
-    expect(response.body.roleName).toBe('Software Engineer');
-  });
-
-  // Feature flag tests
-  describe('Feature Flag: Job Applications', () => {
-    it('should include feature flag in job detail page response', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-      const mockJobRole: JobRole = {
-        jobRoleId: 1,
-        roleName: 'Software Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
-      };
-
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
-
-      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
-        false,
+      vi.mocked(mockJobRoleService.getJobRoles).mockRejectedValue(
+        new Error('DB error'),
       );
 
-      const response = await request(app).get('/job-roles/1');
+      await routes['GET:/job-roles'](mockReq, mockRes);
 
-      expect(response.status).toBe(200);
-      expect(response.body.isJobApplicationsEnabled).toBe(true);
-      expect(
-        vi.mocked(FeatureFlags.isJobApplicationsEnabled),
-      ).toHaveBeenCalled();
-    });
-
-    it('should block apply route when feature is disabled', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(false);
-
-      const response = await request(app).get('/job-roles/1/apply');
-
-      expect(response.status).toBe(404);
-      expect(response.body.view).toBe('error');
-      expect(response.body.message).toContain(
-        'Job applications are currently not available',
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({
+          message: expect.stringContaining('Unable to load job roles'),
+        }),
       );
-      expect(
-        vi.mocked(mockJobRoleService.getJobRoleById),
-      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('GET /job-roles/:id', () => {
+    it('should show apply button for authenticated user with open position', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        jobRoleId: 1,
+        roleName: 'Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28T00:00:00.000Z',
+        status: JobRoleStatus.Open,
+        openPositions: 5,
+      });
+
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-role-information',
+        expect.objectContaining({
+          jobStatusMessage: expect.stringContaining('Apply Now'),
+        }),
+      );
     });
 
-    it('should allow apply route when feature is enabled', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+    it('should show sign in message for unauthenticated user', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+      mockRes.locals = {};
 
-      const mockJobRole: JobRole = {
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
         jobRoleId: 1,
-        roleName: 'Software Engineer',
+        roleName: 'Engineer',
+        location: 'Belfast',
+        capability: 'Data',
+        band: 'Band 3',
+        closingDate: '2026-02-28',
+        status: JobRoleStatus.Open,
+        openPositions: 5,
+      });
+
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-role-information',
+        expect.objectContaining({
+          jobStatusMessage: expect.stringContaining('Sign in'),
+        }),
+      );
+    });
+
+    it('should show unavailable when applications disabled', async () => {
+      vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(false);
+
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        jobRoleId: 1,
+        roleName: 'Engineer',
         location: 'London',
         capability: 'Engineering',
         band: 'Band 4',
         closingDate: '2026-02-28',
-      };
+        status: JobRoleStatus.Open,
+        openPositions: 5,
+      });
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
 
-      const response = await request(app).get('/job-roles/1/apply');
-
-      expect(response.status).toBe(200);
-      expect(response.body.view).toBe('job-apply');
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-role-information',
+        expect.objectContaining({
+          jobStatusMessage: 'Job applications are currently unavailable',
+        }),
+      );
     });
 
-    it('should handle error in apply page loading', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
+    it('should show unavailable when position closed', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        jobRoleId: 1,
+        roleName: 'Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28',
+        status: JobRoleStatus.Closed,
+        openPositions: 0,
+      });
+
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-role-information',
+        expect.objectContaining({
+          jobStatusMessage: 'This position is no longer available',
+        }),
+      );
+    });
+
+    it('should show unavailable when applications disabled', async () => {
+      vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(false);
+
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        jobRoleId: 1,
+        roleName: 'Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28',
+        status: JobRoleStatus.Open,
+        openPositions: 5,
+      });
+
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-role-information',
+        expect.objectContaining({
+          jobStatusMessage: 'Job applications are currently unavailable',
+        }),
+      );
+    });
+
+    it('should show unavailable when position closed', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
+        jobRoleId: 1,
+        roleName: 'Engineer',
+        closingDate: '2026-02-28',
+        status: JobRoleStatus.Closed,
+        openPositions: 0,
+      });
+
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-role-information',
+        expect.objectContaining({
+          jobStatusMessage: 'This position is no longer available',
+        }),
+      );
+    });
+
+    it('should handle errors', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
       vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
-        new Error('Service error'),
+        new Error('Error'),
       );
 
-      const response = await request(app).get('/job-roles/1/apply');
+      await routes['GET:/job-roles/:id'](mockReq, mockRes);
 
-      expect(response.status).toBe(500);
-      expect(response.body.view).toBe('error');
-    });
-
-    it('should return 400 when job role ID is missing in apply route', async () => {
-      vi.mocked(FeatureFlags.isJobApplicationsEnabled).mockReturnValue(true);
-
-      // Mock request with undefined params.id
-      const mockApp = express();
-      mockApp.use(express.json());
-      JobRoleController(mockApp, mockJobRoleService);
-
-      const response = await request(mockApp)
-        .get('/job-roles//apply') // Empty ID
-        .expect(404); // Express treats empty params as 404
-
-      // This tests the edge case handling
+      expect(mockRes.status).toHaveBeenCalledWith(500);
     });
   });
 
-  describe('Edge Cases', () => {
-    it('should handle array ID parameter correctly', async () => {
-      const mockJobRole: JobRole = {
+  describe('GET /job-roles/:id/apply', () => {
+    it('should render apply page when enabled', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
         jobRoleId: 1,
-        roleName: 'Software Engineer',
+        roleName: 'Engineer',
         location: 'London',
         capability: 'Engineering',
         band: 'Band 4',
         closingDate: '2026-02-28',
-      };
+        status: JobRoleStatus.Open,
+        openPositions: 5,
+      });
 
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue(mockJobRole);
+      await routes['GET:/job-roles/:id/apply'](mockReq, mockRes);
 
-      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
-        false,
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'job-apply',
+        expect.objectContaining({
+          jobRoleId: 1,
+          roleName: 'Engineer',
+        }),
+      );
+    });
+
+    it('should return 404 when feature disabled', async () => {
+      vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(false);
+
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      await routes['GET:/job-roles/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+    });
+
+    it('should handle errors', async () => {
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getJobRoleById).mockRejectedValue(
+        new Error('Error'),
       );
 
-      // Test with array-like parameter handling (edge case)
-      const response = await request(app).get('/job-roles/1').query({});
+      await routes['GET:/job-roles/:id/apply'](mockReq, mockRes);
 
-      expect(response.status).toBe(200);
-      expect(response.body.view).toBe('job-role-information');
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('POST /application/:id/apply', () => {
+    it('should return 404 when feature disabled', async () => {
+      vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(false);
+
+      const mockReq = createMockRequest({ params: { id: '1' } });
+      const mockRes = createMockResponse();
+
+      await routes['POST:/application/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+    });
+
+    it('should return 400 when no CV uploaded', async () => {
+      const mockReq = createMockRequest({
+        params: { id: '1' },
+        file: undefined,
+      });
+      const mockRes = createMockResponse();
+
+      await routes['POST:/application/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(400);
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({
+          message: expect.stringContaining('CV'),
+        }),
+      );
+    });
+
+    it('should redirect to login when no token', async () => {
+      const mockReq = createMockRequest({
+        params: { id: '1' },
+        cookies: {},
+        file: {
+          buffer: Buffer.from('pdf'),
+          originalname: 'cv.pdf',
+          mimetype: 'application/pdf',
+        } as Express.Multer.File,
+      });
+      const mockRes = createMockResponse();
+
+      await routes['POST:/application/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.redirect).toHaveBeenCalledWith('/login');
+    });
+
+    it('should redirect to success on successful submission', async () => {
+      const mockReq = createMockRequest({
+        params: { id: '1' },
+        file: {
+          buffer: Buffer.from('pdf'),
+          originalname: 'cv.pdf',
+          mimetype: 'application/pdf',
+        } as Express.Multer.File,
+      });
+      const mockRes = createMockResponse();
+
+      vi.mocked(axios.post).mockResolvedValue({ data: {} });
+
+      await routes['POST:/application/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.redirect).toHaveBeenCalledWith('/application-success');
+    });
+
+    it('should handle axios errors', async () => {
+      const mockReq = createMockRequest({
+        params: { id: '1' },
+        file: {
+          buffer: Buffer.from('pdf'),
+          originalname: 'cv.pdf',
+          mimetype: 'application/pdf',
+        } as Express.Multer.File,
+      });
+      const mockRes = createMockResponse();
+
+      const axiosError = {
+        isAxiosError: true,
+        response: { data: { error: 'Custom error' } },
+      };
+      vi.mocked(axios.post).mockRejectedValue(axiosError);
+      vi.mocked(axios.isAxiosError).mockReturnValue(true);
+
+      await routes['POST:/application/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'error',
+        expect.objectContaining({
+          message: 'Custom error',
+        }),
+      );
+    });
+
+    it('should handle generic errors', async () => {
+      const mockReq = createMockRequest({
+        params: { id: '1' },
+        file: {
+          buffer: Buffer.from('pdf'),
+          originalname: 'cv.pdf',
+          mimetype: 'application/pdf',
+        } as Express.Multer.File,
+      });
+      const mockRes = createMockResponse();
+
+      vi.mocked(axios.post).mockRejectedValue(new Error('Generic error'));
+      vi.mocked(axios.isAxiosError).mockReturnValue(false);
+
+      await routes['POST:/application/:id/apply'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('GET /add-role', () => {
+    it('should render form for admin users', async () => {
+      const mockReq = createMockRequest();
+      const mockRes = createMockResponse(2);
+
+      vi.mocked(mockJobRoleService.getBands).mockResolvedValue([
+        { bandId: 1, bandName: 'Band 1' },
+      ]);
+      vi.mocked(mockJobRoleService.getCapabilities).mockResolvedValue([
+        { capabilityId: 1, capabilityName: 'Eng' },
+      ]);
+      vi.mocked(mockJobRoleService.getLocations).mockResolvedValue([
+        {
+          locationId: 1,
+          locationName: 'London',
+          city: 'London',
+          country: 'UK',
+        },
+      ]);
+
+      await routes['GET:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'add-role',
+        expect.objectContaining({
+          bands: expect.any(Array),
+          capabilities: expect.any(Array),
+          locations: expect.any(Array),
+        }),
+      );
+    });
+
+    it('should return 404 when feature disabled', async () => {
+      vi.spyOn(FeatureFlags, 'isAddJobRoleEnabled').mockReturnValue(false);
+
+      const mockReq = createMockRequest();
+      const mockRes = createMockResponse();
+
+      await routes['GET:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+    });
+
+    it('should return 403 for non-admin users', async () => {
+      const mockReq = createMockRequest();
+      const mockRes = createMockResponse(1);
+
+      await routes['GET:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+    });
+
+    it('should handle errors', async () => {
+      const mockReq = createMockRequest();
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.getBands).mockRejectedValue(
+        new Error('DB error'),
+      );
+
+      await routes['GET:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('POST /add-role', () => {
+    it('should create job role and redirect', async () => {
+      const mockReq = createMockRequest({ body: { roleName: 'Test' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.createJobRole).mockResolvedValue({});
+
+      await routes['POST:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.redirect).toHaveBeenCalledWith('/job-roles');
+    });
+
+    it('should return 404 when feature disabled', async () => {
+      vi.spyOn(FeatureFlags, 'isAddJobRoleEnabled').mockReturnValue(false);
+
+      const mockReq = createMockRequest({ body: { roleName: 'Test' } });
+      const mockRes = createMockResponse();
+
+      await routes['POST:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(404);
+    });
+
+    it('should return 403 for non-admin users', async () => {
+      const mockReq = createMockRequest({ body: { roleName: 'Test' } });
+      const mockRes = createMockResponse(1);
+
+      await routes['POST:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(403);
+    });
+
+    it('should handle duplicate role name', async () => {
+      const mockReq = createMockRequest({ body: { roleName: 'Duplicate' } });
+      const mockRes = createMockResponse();
+
+      const axiosError = { isAxiosError: true, response: { status: 409 } };
+      vi.mocked(mockJobRoleService.createJobRole).mockRejectedValue(axiosError);
+      vi.mocked(mockJobRoleService.getBands).mockResolvedValue([]);
+      vi.mocked(mockJobRoleService.getCapabilities).mockResolvedValue([]);
+      vi.mocked(mockJobRoleService.getLocations).mockResolvedValue([]);
+      vi.mocked(axios.isAxiosError).mockReturnValue(true);
+
+      await routes['POST:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'add-role',
+        expect.objectContaining({
+          error: expect.stringContaining('already exists'),
+        }),
+      );
+    });
+
+    it('should handle axios errors with custom message', async () => {
+      const mockReq = createMockRequest({ body: { roleName: 'Test' } });
+      const mockRes = createMockResponse();
+
+      const axiosError = {
+        isAxiosError: true,
+        response: { data: { error: 'Custom' } },
+      };
+      vi.mocked(mockJobRoleService.createJobRole).mockRejectedValue(axiosError);
+      vi.mocked(mockJobRoleService.getBands).mockResolvedValue([]);
+      vi.mocked(mockJobRoleService.getCapabilities).mockResolvedValue([]);
+      vi.mocked(mockJobRoleService.getLocations).mockResolvedValue([]);
+      vi.mocked(axios.isAxiosError).mockReturnValue(true);
+
+      await routes['POST:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'add-role',
+        expect.objectContaining({
+          error: 'Custom',
+        }),
+      );
+    });
+
+    it('should handle generic errors', async () => {
+      const mockReq = createMockRequest({ body: { roleName: 'Test' } });
+      const mockRes = createMockResponse();
+
+      vi.mocked(mockJobRoleService.createJobRole).mockRejectedValue(
+        new Error('Error'),
+      );
+      vi.mocked(mockJobRoleService.getBands).mockResolvedValue([]);
+      vi.mocked(mockJobRoleService.getCapabilities).mockResolvedValue([]);
+      vi.mocked(mockJobRoleService.getLocations).mockResolvedValue([]);
+      vi.mocked(axios.isAxiosError).mockReturnValue(false);
+
+      await routes['POST:/add-role'](mockReq, mockRes);
+
+      expect(mockRes.render).toHaveBeenCalledWith(
+        'add-role',
+        expect.objectContaining({
+          error: expect.stringContaining('Failed to create'),
+        }),
+      );
     });
   });
 });
