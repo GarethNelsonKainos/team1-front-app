@@ -13,6 +13,7 @@ export interface JobRole {
   description?: string;
   responsibilities?: string;
   jobSpecLink?: string;
+  sharepointUrl?: string;
   openPositions?: number;
   status?: string;
 }

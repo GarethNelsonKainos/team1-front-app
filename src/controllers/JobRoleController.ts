@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { Application, Request, Response } from 'express';
 import FormData from 'form-data';
 import multer from 'multer';
+import { API_BASE_URL } from '../config';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import { JobRoleStatus } from '../models/JobRole';
 import { UserRole } from '../models/UserRole';
@@ -11,8 +12,6 @@ import {
   isJobApplicationsEnabled,
 } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
-
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -39,7 +38,7 @@ export default function JobRoleController(
       try {
         const jobRoles = await jobRoleService.getJobRoles();
 
-        const formattedJobRoles = jobRoles.map((role) => ({
+        const formattedJobRoles = jobRoles.jobRoles.map((role) => ({
           ...role,
           closingDate: formatTimestampToDateString(role.closingDate),
         }));
@@ -65,8 +64,12 @@ export default function JobRoleController(
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
-        const idParam = Number(req.params.id);
-        const jobRole = await jobRoleService.getJobRoleById(idParam);
+        const idParam = req.params.id as string;
+        const jobRole = await jobRoleService.getJobRoleById(Number(idParam));
+        const hasApplied = await jobRoleService.checkApplicationStatus(
+          idParam,
+          req.cookies.token,
+        );
 
         const formattedClosingDate = formatTimestampToDateString(
           jobRole.closingDate,
@@ -77,8 +80,7 @@ export default function JobRoleController(
         const user = res.locals.user;
 
         if (!user) {
-          jobStatusMessage =
-            '<a href="/login" class="text-blue-700 underline">Sign in</a> to apply';
+          jobStatusMessage = 'Sign in to apply';
         } else if (!isJobApplicationsEnabled()) {
           jobStatusMessage = 'Job applications are currently unavailable';
         } else if (
@@ -86,16 +88,22 @@ export default function JobRoleController(
           (jobRole.openPositions ?? 0) <= 0
         ) {
           jobStatusMessage = 'This position is no longer available';
+        } else if (hasApplied) {
+          // Will be handled in template
+          jobStatusMessage = '';
         } else {
-          jobStatusMessage = `<a href="/job-roles/${jobRole.jobRoleId}/apply" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-colors">Apply Now</a>`;
+          jobStatusMessage = 'Apply Now';
         }
 
         res.render('job-role-information', {
           title: jobRole.roleName,
           jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
+          canDelete: user?.userRole === UserRole.ADMIN,
           isJobApplicationsEnabled: isJobApplicationsEnabled(),
           jobStatusMessage: jobStatusMessage,
+          applicationStatus: { hasApplied },
+          isAuthenticated: user != null,
         });
       } catch (error) {
         console.error('Error fetching job role information:', error);
@@ -103,6 +111,66 @@ export default function JobRoleController(
           title: 'Error',
           message:
             'Unable to load job role information. Please try again later.',
+        });
+      }
+    },
+  );
+
+  app.get(
+    '/job-roles/:id/confirm-delete',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        const idParam = req.params.id as string;
+
+        const jobRole = await jobRoleService.getJobRoleById(Number(idParam));
+
+        const formattedClosingDate = formatTimestampToDateString(
+          jobRole.closingDate,
+        );
+
+        res.render('confirm-delete', {
+          title: 'Confirm Delete',
+          jobRole: jobRole,
+          formattedClosingDate: formattedClosingDate,
+        });
+      } catch (error) {
+        console.error('Error fetching job role for deletion:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message: 'Unable to load job role. Please try again later.',
+        });
+      }
+    },
+  );
+
+  // This will need to be edited when the authentication for the frontend is implemented,
+  // as we will need to pass the token from the frontend to the backend to verify that
+  // the user is an admin before allowing them to delete a job role
+  app.post(
+    '/job-roles/:id/delete',
+    authenticateJWT,
+    async (req: Request, res: Response) => {
+      try {
+        const id = Number(req.params.id);
+        const user = res.locals.user;
+
+        if (user.userRole !== UserRole.ADMIN) {
+          res.status(403).render('error', {
+            title: 'Forbidden',
+            message: 'You do not have permission to delete job roles.',
+          });
+          return;
+        }
+
+        await jobRoleService.deleteJobRole(id, req.cookies.token);
+
+        res.redirect('/job-roles');
+      } catch (error) {
+        console.error('Error deleting job role:', error);
+        res.status(500).render('error', {
+          title: 'Error',
+          message: 'Unable to delete job role. Please try again later.',
         });
       }
     },

@@ -12,15 +12,41 @@ vi.mock('axios');
 describe('JobRoleService', () => {
   let mockedGet: Mock;
   let mockedPost: Mock;
+  let mockedDelete: Mock;
   const service = new JobRoleService();
 
   beforeEach(() => {
     mockedGet = vi.mocked(axios).get as unknown as Mock;
     mockedPost = vi.mocked(axios).post as unknown as Mock;
+    mockedDelete = vi.mocked(axios).delete as unknown as Mock;
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('should wrap array response for backward compatibility', async () => {
+    const mockJobRoles: JobRole[] = [
+      {
+        jobRoleId: 1,
+        roleName: 'Software Engineer',
+        location: 'London',
+        capability: 'Engineering',
+        band: 'Band 4',
+        closingDate: '2026-02-28',
+      },
+    ];
+
+    mockedGet.mockResolvedValue({
+      data: mockJobRoles, // legacy array response
+    });
+
+    const result = await service.getJobRoles();
+
+    expect(result).toEqual({
+      canDelete: false,
+      jobRoles: mockJobRoles,
+    });
   });
 
   it('should fetch job roles successfully', async () => {
@@ -35,11 +61,19 @@ describe('JobRoleService', () => {
       },
     ];
 
-    mockedGet.mockResolvedValue({ data: mockJobRoles });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: true,
+        jobRoles: mockJobRoles,
+      },
+    });
 
     const result = await service.getJobRoles();
 
-    expect(result).toEqual(mockJobRoles);
+    expect(result).toEqual({
+      canDelete: true,
+      jobRoles: mockJobRoles,
+    });
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles'),
     );
@@ -53,11 +87,30 @@ describe('JobRoleService', () => {
   });
 
   it('should return empty array when no job roles exist', async () => {
-    mockedGet.mockResolvedValue({ data: [] });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: false,
+        jobRoles: [],
+      },
+    });
 
     const result = await service.getJobRoles();
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({
+      canDelete: false,
+      jobRoles: [],
+    });
+  });
+
+  it('should delete job role successfully', async () => {
+    mockedDelete.mockResolvedValue({ status: 204 });
+
+    await service.deleteJobRole(123, 'token');
+
+    expect(mockedDelete).toHaveBeenCalledWith(
+      expect.stringContaining('/api/job-roles/123'),
+      { headers: { Authorization: 'Bearer token' } },
+    );
   });
 
   it('should fetch job role by id successfully', async () => {

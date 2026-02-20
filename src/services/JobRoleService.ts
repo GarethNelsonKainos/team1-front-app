@@ -1,11 +1,20 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import type { Band } from '../models/Band';
 import type { Capability } from '../models/Capability';
 import type { CreateJobRoleRequest } from '../models/CreateJobRoleRequest';
 import type { JobRole } from '../models/JobRole';
 import type { Location } from '../models/Location';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
+export interface JobRoleListResponse {
+  canDelete: boolean;
+  jobRoles: JobRole[];
+}
+
+export interface JobRoleDetailResponse {
+  canDelete: boolean;
+  jobRole: JobRole;
+}
 
 interface RawJobRoleFormData {
   roleName: string;
@@ -20,11 +29,33 @@ interface RawJobRoleFormData {
 }
 
 export class JobRoleService {
-  async getJobRoles(): Promise<JobRole[]> {
-    const { data } = await axios.get<JobRole[]>(
-      `${API_BASE_URL}/api/job-roles`,
-    );
-    return data;
+  async getJobRoles(): Promise<JobRoleListResponse> {
+    try {
+      const response = await axios.get<JobRoleListResponse>(
+        `${API_BASE_URL}/api/job-roles`,
+      );
+      const data = response.data as unknown;
+      if (Array.isArray(data)) {
+        return { canDelete: false, jobRoles: data };
+      }
+      return response.data;
+    } catch (error: unknown) {
+      console.error('Error fetching job roles:', error);
+      throw error;
+    }
+  }
+
+  async deleteJobRole(id: number, token: string): Promise<void> {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/job-roles/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error: unknown) {
+      console.error(`Error deleting job role with id ${id}:`, error);
+      throw error;
+    }
   }
 
   async getJobRoleById(id: number): Promise<JobRole> {
@@ -73,5 +104,24 @@ export class JobRoleService {
       `${API_BASE_URL}/api/locations`,
     );
     return data;
+  }
+
+  async checkApplicationStatus(
+    jobRoleId: string,
+    token: string,
+  ): Promise<boolean> {
+    try {
+      const response = await axios.get<{ hasApplied: boolean }>(
+        `${API_BASE_URL}/api/applications/status/${jobRoleId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      return response.data.hasApplied;
+    } catch (error: unknown) {
+      console.error(
+        `Error checking application status for job role ${jobRoleId}:`,
+        error,
+      );
+      return false; // Default to allowing application on error
+    }
   }
 }

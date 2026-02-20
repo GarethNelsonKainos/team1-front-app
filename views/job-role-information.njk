@@ -64,6 +64,33 @@
           View Full Job Specification
         </a>
       </div>
+      <div class="flex justify-center mt-8">
+        {% if not isAuthenticated %}
+          <div class="text-gray-500 px-6 py-2">
+            <a href="/login" class="text-blue-700 underline">Sign in</a> to apply
+          </div>
+        {% elif jobStatusMessage %}
+          <div class="text-gray-600 px-6 py-2">{{ jobStatusMessage }}</div>
+        {% elif applicationStatus.hasApplied %}
+          <div class="bg-gray-100 text-gray-600 px-6 py-2 rounded">
+            ✓ Already Applied
+          </div>
+        {% else %}
+          <a href="/job-roles/{{ jobRole.jobRoleId }}/apply" class="bg-blue-700 text-white px-6 py-2 rounded hover:bg-blue-800 font-semibold">
+            Apply Now
+          </a>
+        {% endif %}
+      </div>
+        {% if canDelete %}
+        <div class="flex justify-center mt-4">
+          <a
+            href="/job-roles/{{ jobRole.jobRoleId }}/confirm-delete"
+            class="text-red-700 underline hover:text-red-900"
+          >
+          Delete role
+          </a>
+        </div>
+        {% endif %}
 
       <!-- Divider -->
       <div class="border-t border-gray-200 my-6"></div>
@@ -81,4 +108,5 @@
       </div>
     </div>
   </div>
+  <script src="/js/job-application.js"></script>
 {% endblock %}

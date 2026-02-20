@@ -1,7 +1,7 @@
 {% extends "layout.njk" %}
 
 {% block content %}
-    <div class="bg-white rounded-lg shadow-md p-6">
+    <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-8 mt-8">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-3xl font-bold text-gray-800">Current vacancies</h2>
             
@@ -36,6 +36,45 @@
             </div>
         {% else %}
             <p class="text-gray-600">No job roles available at this time.</p>
+            <table class="w-full border-collapse border border-gray-300">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Role Name</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Location</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Capability</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Band</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Closing Date</th>
+                        {% if canDelete %}
+                            <th class="border border-gray-300 px-4 py-2 text-left">Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for role in jobRoles %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="border border-gray-300 px-4 py-2">
+                                <a href="/job-roles/{{ role.jobRoleId }}" class="text-blue-700 underline hover:text-blue-900">
+                                    {{ role.roleName }}
+                                </a>
+                            </td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.location }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.capability }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.band }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ role.formattedClosingDate }}</td>
+                            {% if canDelete %}
+                                <td class="border border-gray-300 px-4 py-2">
+                                    <a
+                                        href="/job-roles/{{ role.jobRoleId }}/confirm-delete"
+                                        class="text-red-700 underline hover:text-red-900"
+                                    >
+                                        Delete
+                                    </a>
+                                </td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% endif %}
     </div>
 {% endblock %}

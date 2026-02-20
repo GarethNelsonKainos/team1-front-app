@@ -32,11 +32,16 @@ describe('API', () => {
       },
     ];
 
-    mockedGet.mockResolvedValue({ data: mockJobRoles });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: true,
+        jobRoles: mockJobRoles,
+      },
+    });
 
     const result = await fetchJobRoles();
 
-    expect(result).toEqual(mockJobRoles);
+    expect(result.jobRoles).toEqual(mockJobRoles);
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles'),
     );
@@ -50,10 +55,15 @@ describe('API', () => {
   });
 
   it('should return empty array when no job roles exist', async () => {
-    mockedGet.mockResolvedValue({ data: [] });
+    mockedGet.mockResolvedValue({
+      data: {
+        canDelete: false,
+        jobRoles: [],
+      },
+    });
 
     const result = await fetchJobRoles();
 
-    expect(result).toEqual([]);
+    expect(result.jobRoles).toEqual([]);
   });
 });
