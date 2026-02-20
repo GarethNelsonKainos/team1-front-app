@@ -101,7 +101,12 @@ describe('JobRoleController', () => {
 
       expect(mockRes.render).toHaveBeenCalledWith('job-role-list', {
         title: 'Available Job Roles',
-        jobRoles: mockJobRoles,
+        jobRoles: [
+          {
+            ...mockJobRoles[0],
+            closingDate: '28/02/2026',
+          },
+        ],
         user: mockRes.locals.user,
       });
     });
