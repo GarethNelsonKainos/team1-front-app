@@ -69,5 +69,3 @@ JobRoleController(app, jobRoleService);
 app.listen(PORT, () => {
   console.log(`Frontend running on port ${PORT}`);
 });
-
-export default app;

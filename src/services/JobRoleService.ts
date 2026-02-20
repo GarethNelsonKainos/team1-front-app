@@ -42,16 +42,10 @@ export class JobRoleService {
     }
   }
 
-  async getJobRoleById(id: string | number): Promise<JobRoleDetailResponse> {
+  async getJobRoleById(id: string | number): Promise<JobRole> {
     try {
-      const response = await axios.get<JobRoleDetailResponse>(
-        `${API_BASE_URL}/api/job-roles/${id}`,
-      );
-      const data = response.data as unknown;
-      if (typeof data === 'object' && data !== null && !('jobRole' in data)) {
-        return { canDelete: false, jobRole: data as JobRole };
-      }
-      return response.data;
+      const response = await axios.get(`${API_BASE_URL}/api/job-roles/${id}`);
+      return response.data as JobRole;
     } catch (error: unknown) {
       console.error(`Error fetching job role with id ${id}:`, error);
       throw error;

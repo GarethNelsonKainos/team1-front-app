@@ -5,6 +5,7 @@ import multer from 'multer';
 import { API_BASE_URL } from '../config';
 import authenticateJWT from '../middleware/AuthMiddleware';
 import { JobRoleStatus } from '../models/JobRole';
+import UserRole from '../models/UserRole';
 import type { JobRoleService } from '../services/JobRoleService';
 import { isJobApplicationsEnabled } from '../utils/FeatureFlags';
 import { formatTimestampToDateString } from '../utils/date-formatter';
@@ -36,9 +37,16 @@ export default function JobRoleController(
         const token = req.cookies.token;
         const response = await jobRoleService.getJobRoles();
 
+        const jobRoles = response.jobRoles.map((jobRole) => {
+          const formattedClosingDate = formatTimestampToDateString(
+            jobRole.closingDate,
+          );
+          return { ...jobRole, formattedClosingDate: formattedClosingDate };
+        });
+
         res.render('job-role-list', {
           title: 'Available Job Roles',
-          jobRoles: response.jobRoles,
+          jobRoles: jobRoles,
           canDelete: response.canDelete,
         });
       } catch (error: unknown) {
@@ -60,12 +68,13 @@ export default function JobRoleController(
         const token = req.cookies.token;
 
         const jobRole = await jobRoleService.getJobRoleById(idParam);
-        const hasApplied = token
-          ? await jobRoleService.checkApplicationStatus(idParam, token)
-          : false;
+        const hasApplied = await jobRoleService.checkApplicationStatus(
+          idParam,
+          token,
+        );
 
         const formattedClosingDate = formatTimestampToDateString(
-          jobRole.jobRole.closingDate,
+          jobRole.closingDate,
         );
 
         // Calculate job status message based on conditions
@@ -78,8 +87,8 @@ export default function JobRoleController(
         } else if (!isJobApplicationsEnabled()) {
           jobStatusMessage = 'Job applications are currently unavailable';
         } else if (
-          jobRole.jobRole.status !== JobRoleStatus.Open ||
-          (jobRole.jobRole.openPositions ?? 0) <= 0
+          jobRole.status !== JobRoleStatus.Open ||
+          (jobRole.openPositions ?? 0) <= 0
         ) {
           jobStatusMessage = 'This position is no longer available';
         } else if (hasApplied) {
@@ -91,15 +100,14 @@ export default function JobRoleController(
         }
 
         res.render('job-role-information', {
-          title: jobRole.jobRole.roleName,
-          jobRole: jobRole.jobRole,
+          title: jobRole.roleName,
+          jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
-          canDelete: true,
-          apiBaseUrl: API_BASE_URL,
+          canDelete: user.userRole === UserRole.Admin,
           isJobApplicationsEnabled: isJobApplicationsEnabled(),
           jobStatusMessage: jobStatusMessage,
           applicationStatus: { hasApplied },
-          isAuthenticated: !!token,
+          isAuthenticated: user != null,
         });
       } catch (error) {
         console.error('Error fetching job role information:', error);
@@ -122,12 +130,12 @@ export default function JobRoleController(
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         const formattedClosingDate = formatTimestampToDateString(
-          jobRole.jobRole.closingDate,
+          jobRole.closingDate,
         );
 
         res.render('confirm-delete', {
           title: 'Confirm Delete',
-          jobRole: jobRole.jobRole,
+          jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
         });
       } catch (error) {
@@ -149,9 +157,9 @@ export default function JobRoleController(
     async (req: Request, res: Response) => {
       try {
         const id = Number(req.params.id);
+        const user = res.locals.user;
 
-        // Check if user is admin
-        if (res.locals.user?.userRole !== 'Admin') {
+        if (user.userRole !== UserRole.Admin) {
           res.status(403).render('error', {
             title: 'Forbidden',
             message: 'You do not have permission to delete job roles.',
@@ -159,10 +167,8 @@ export default function JobRoleController(
           return;
         }
 
-        // Delete the job role
         await jobRoleService.deleteJobRole(id, req.cookies.token);
 
-        // Redirect to job roles list on success
         res.redirect('/job-roles');
       } catch (error) {
         console.error('Error deleting job role:', error);
@@ -193,9 +199,9 @@ export default function JobRoleController(
         const jobRole = await jobRoleService.getJobRoleById(idParam);
 
         res.render('job-apply', {
-          title: `Apply for ${jobRole.jobRole.roleName}`,
-          jobRoleId: jobRole.jobRole.jobRoleId,
-          roleName: jobRole.jobRole.roleName,
+          title: `Apply for ${jobRole.roleName}`,
+          jobRoleId: jobRole.jobRoleId,
+          roleName: jobRole.roleName,
         });
       } catch (error) {
         console.error('Error in JobRoleController:', error);
