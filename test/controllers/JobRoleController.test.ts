@@ -81,6 +81,7 @@ describe('JobRoleController', () => {
       getJobRoles: vi.fn(),
       getJobRoleById: vi.fn(),
       deleteJobRole: vi.fn(),
+      checkApplicationStatus: vi.fn(),
     } as unknown as JobRoleService;
 
     app.use((req, res, next) => {
@@ -204,6 +205,10 @@ describe('JobRoleController', () => {
       jobRole: mockJobRole,
     });
 
+    vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
+      false,
+    );
+
     const response = await request(app).get('/job-roles/2');
 
     expect(response.status).toBe(200);
@@ -267,6 +272,10 @@ describe('JobRoleController', () => {
         canDelete: true,
         jobRole: mockJobRole,
       } as JobRoleDetailResponse);
+
+      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
+        false,
+      );
 
       const response = await request(app).get('/job-roles/1');
 
@@ -358,6 +367,10 @@ describe('JobRoleController', () => {
         canDelete: true,
         jobRole: mockJobRole,
       });
+
+      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(
+        false,
+      );
 
       // Test with array-like parameter handling (edge case)
       const response = await request(app).get('/job-roles/1').query({});

@@ -57,4 +57,23 @@ export class JobRoleService {
       throw error;
     }
   }
+
+  async checkApplicationStatus(
+    jobRoleId: string,
+    token: string,
+  ): Promise<boolean> {
+    try {
+      const response = await axios.get<{ hasApplied: boolean }>(
+        `${API_BASE_URL}/api/applications/status/${jobRoleId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      return response.data.hasApplied;
+    } catch (error: unknown) {
+      console.error(
+        `Error checking application status for job role ${jobRoleId}:`,
+        error,
+      );
+      return false; // Default to allowing application on error
+    }
+  }
 }

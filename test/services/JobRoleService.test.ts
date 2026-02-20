@@ -134,4 +134,37 @@ describe('JobRoleService', () => {
 
     await expect(service.getJobRoleById('1')).rejects.toThrow();
   });
+  describe('checkApplicationStatus', () => {
+    it('should return true when user has already applied', async () => {
+      mockedGet.mockResolvedValue({
+        data: { hasApplied: true },
+      });
+
+      const result = await service.checkApplicationStatus('1', 'test-token');
+
+      expect(result).toBe(true);
+      expect(mockedGet).toHaveBeenCalledWith(
+        'http://localhost:3001/api/applications/status/1',
+        { headers: { Authorization: 'Bearer test-token' } },
+      );
+    });
+
+    it('should return false when user has not applied', async () => {
+      mockedGet.mockResolvedValue({
+        data: { hasApplied: false },
+      });
+
+      const result = await service.checkApplicationStatus('1', 'test-token');
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false when API call fails', async () => {
+      mockedGet.mockRejectedValue(new Error('API Error'));
+
+      const result = await service.checkApplicationStatus('1', 'test-token');
+
+      expect(result).toBe(false);
+    });
+  });
 });

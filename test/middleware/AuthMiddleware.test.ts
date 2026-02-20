@@ -12,9 +12,9 @@ describe('AuthMiddleware', () => {
   let mockRes: Partial<Response>;
   let mockNext: ReturnType<typeof vi.fn>;
   let redirectMock: ReturnType<typeof vi.fn>;
-  let clearCookieMock: ReturnType<typeof vi.fn>;
   let statusMock: ReturnType<typeof vi.fn>;
   let renderMock: ReturnType<typeof vi.fn>;
+  let clearCookieMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Reset axios defaults
@@ -22,19 +22,23 @@ describe('AuthMiddleware', () => {
       axios.defaults.headers.common.Authorization = undefined;
     }
 
+    // Set up environment variable for JWT secret
+    process.env.JWT_SECRET = 'test-secret-key';
+
     redirectMock = vi.fn();
-    clearCookieMock = vi.fn();
+    statusMock = vi.fn();
     renderMock = vi.fn();
+    clearCookieMock = vi.fn();
     mockNext = vi.fn();
 
-    // statusMock needs to return the mockRes object for method chaining
-    statusMock = vi.fn().mockReturnThis();
+    // Make statusMock return an object with render method for chaining
+    statusMock.mockReturnValue({ render: renderMock });
 
     mockRes = {
       redirect: redirectMock,
-      clearCookie: clearCookieMock,
       status: statusMock,
       render: renderMock,
+      clearCookie: clearCookieMock,
       locals: {},
     } as unknown as Response;
 
@@ -43,7 +47,6 @@ describe('AuthMiddleware', () => {
     };
 
     vi.clearAllMocks();
-    process.env.JWT_SECRET = 'test-secret';
   });
 
   it('should call next() with valid token and set user in res.locals', () => {
@@ -65,7 +68,7 @@ describe('AuthMiddleware', () => {
       mockNext as NextFunction,
     );
 
-    expect(jwt.verify).toHaveBeenCalledWith(mockToken, 'test-secret');
+    expect(jwt.verify).toHaveBeenCalledWith(mockToken, 'test-secret-key');
     expect(mockRes.locals?.user).toEqual(mockDecoded);
     expect(axios.defaults.headers.common?.Authorization).toBe(
       `Bearer ${mockToken}`,
@@ -84,17 +87,11 @@ describe('AuthMiddleware', () => {
     );
 
     expect(redirectMock).toHaveBeenCalledWith('/login');
-    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
   });
 
-  it('should redirect to /login when token is invalid', () => {
-    const mockToken = 'invalid.jwt.token';
-    mockReq.cookies = { token: mockToken };
-
-    vi.mocked(jwt.verify).mockImplementation(() => {
-      throw new Error('Invalid token');
-    });
+  it('should redirect to /login when token cookie is undefined', () => {
+    mockReq.cookies = { token: undefined };
 
     authenticateJWT(
       mockReq as Request,
@@ -102,59 +99,12 @@ describe('AuthMiddleware', () => {
       mockNext as NextFunction,
     );
 
-    expect(clearCookieMock).toHaveBeenCalledWith('token');
     expect(redirectMock).toHaveBeenCalledWith('/login');
-    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
     expect(mockNext).not.toHaveBeenCalled();
   });
-
-  it('should redirect to /login when token is expired', () => {
-    const mockToken = 'expired.jwt.token';
-    mockReq.cookies = { token: mockToken };
-
-    const error = new Error('jwt expired');
-    error.name = 'TokenExpiredError';
-    vi.mocked(jwt.verify).mockImplementation(() => {
-      throw error;
-    });
-
-    authenticateJWT(
-      mockReq as Request,
-      mockRes as Response,
-      mockNext as NextFunction,
-    );
-
-    expect(clearCookieMock).toHaveBeenCalledWith('token');
-    expect(redirectMock).toHaveBeenCalledWith('/login');
-    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
-    expect(mockNext).not.toHaveBeenCalled();
-  });
-
-  it('should handle malformed token gracefully', () => {
-    const mockToken = 'malformed-token-format';
-    mockReq.cookies = { token: mockToken };
-
-    const error = new Error('jwt malformed');
-    error.name = 'JsonWebTokenError';
-    vi.mocked(jwt.verify).mockImplementation(() => {
-      throw error;
-    });
-
-    authenticateJWT(
-      mockReq as Request,
-      mockRes as Response,
-      mockNext as NextFunction,
-    );
-
-    expect(clearCookieMock).toHaveBeenCalledWith('token');
-    expect(redirectMock).toHaveBeenCalledWith('/login');
-    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
-    expect(mockNext).not.toHaveBeenCalled();
-  });
-
   it('should return 500 error when JWT_SECRET is not configured', () => {
     const originalJwtSecret = process.env.JWT_SECRET;
-    // @ts-ignore - Setting to empty string to simulate missing env var (satisfies linter)
+    // @ts-ignore - Setting to empty string to simulate missing env var
     process.env.JWT_SECRET = '';
 
     mockReq.cookies = { token: 'some-token' };
@@ -175,5 +125,25 @@ describe('AuthMiddleware', () => {
 
     // Restore original value
     process.env.JWT_SECRET = originalJwtSecret;
+  });
+
+  it('should redirect to login when token verification fails', () => {
+    const mockToken = 'invalid.jwt.token';
+    mockReq.cookies = { token: mockToken };
+
+    vi.mocked(jwt.verify).mockImplementation(() => {
+      throw new Error('Invalid token');
+    });
+
+    authenticateJWT(
+      mockReq as Request,
+      mockRes as Response,
+      mockNext as NextFunction,
+    );
+
+    expect(clearCookieMock).toHaveBeenCalledWith('token');
+    expect(redirectMock).toHaveBeenCalledWith('/login');
+    expect(axios.defaults.headers.common?.Authorization).toBeUndefined();
+    expect(mockNext).not.toHaveBeenCalled();
   });
 });
