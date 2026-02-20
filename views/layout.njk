@@ -8,10 +8,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 flex flex-col min-h-screen">
     <header class="bg-white p-4 flex justify-between items-center">
-        <img src="/KainosLogo.png" alt="Kainos" class="logo header-logo">
+        <a href="/login">
+            <img src="/KainosLogo.png" alt="Kainos" class="logo" style="height: 50px; width: auto;">
+        </a>
         
+        <!-- Navigation Bar -->
+        <nav class="flex-1 mx-8">
+            <ul class="flex gap-6">
+                <li>
+                    <a href="/job-roles" class="nav-link px-3 py-2 rounded hover:bg-gray-100 transition-colors" style="color: var(--brand-primary);">
+                        Current Vacancies
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
         <!-- Sign In/Out button container -->
         <div id="authContainer">
             {% if user %}
@@ -34,11 +47,11 @@
         </div>
     </header>
 
-    <main class="container mx-auto p-4">
+    <main class="container mx-auto p-4 flex-grow mt-8 mb-8">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-gray-800 text-white p-8">
+    <footer class="bg-gray-800 text-white p-8 mt-auto">
         <div class="container mx-auto flex justify-between items-start gap-8">
             <div class="footer-logo">
                 <img src="/KainosLogo.png" alt="Kainos">
@@ -46,19 +59,26 @@
             <div class="footer-contact">
                 <h3 class="font-bold mb-2">Contact Us</h3>
                 <p>Email: info@kainos.com</p>
-                <p>Phone: +44 (0) 28 9923 4383</p>
+                <p>Phone: +44 (0)28 9057 1100</p>
             </div>
             <div class="footer-address">
                 <h3 class="font-bold mb-2">Address</h3>
                 <p>Kainos House</p>
-                <p>Kainos Plaza</p>
+                <p>4-6 Upper Crescent</p>
                 <p>Belfast</p>
-                <p>BT1 3BT</p>
+                <p>BT7 1NT</p>
+                <p>Northern Ireland</p>
             </div>
         </div>
         <div class="text-center mt-8 border-t border-gray-700 pt-4">
-            <p>&copy; 2026 Kainos. All rights reserved.</p>
+            <p>&copy; <span id="currentYear"></span> Kainos. All rights reserved.</p>
+        </div>
         </div>
     </footer>
+
+    <script>
+        // Set current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>

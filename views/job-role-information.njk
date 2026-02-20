@@ -1,58 +1,83 @@
 {% extends "layout.njk" %}
 
 {% block content %}
-  <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-8 mt-8">
-    <h1 class="text-2xl font-bold mb-6 text-center">{{ jobRole.roleName }}</h1>
-    <form class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block font-semibold">Location</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.location }}</div>
+  <div class="max-w-4xl mx-auto mt-8 mb-12">
+    <!-- Header -->
+    <div class="bg-white shadow-md rounded-t-lg border-b-4 border-blue-600 p-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ jobRole.roleName }}</h1>
+      <div class="flex items-center gap-3 text-sm text-gray-600">
+        <span class="bg-gray-100 px-3 py-1 rounded">{{ jobRole.capability }}</span>
+        <span class="bg-gray-100 px-3 py-1 rounded">{{ jobRole.band }}</span>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="bg-white shadow-md rounded-b-lg p-8">
+      <!-- Key Information Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="border border-gray-200 rounded-lg p-4">
+          <label class="block text-sm font-semibold text-gray-600 mb-1">Location</label>
+          <div class="text-gray-900">{{ jobRole.location }}</div>
         </div>
-        <div>
-          <label class="block font-semibold">Closing Date</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ formattedClosingDate }}</div>
+        <div class="border border-gray-200 rounded-lg p-4">
+          <label class="block text-sm font-semibold text-gray-600 mb-1">Closing Date</label>
+          <div class="text-gray-900">{{ formattedClosingDate }}</div>
         </div>
-        <div>
-          <label class="block font-semibold">Capability</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.capability }}</div>
-        </div>
-        <div>
-          <label class="block font-semibold">Band</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.band }}</div>
-        </div>
-        <div>
-          <label class="block font-semibold">Status</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.status }}</div>
-        </div>
-        <div>
-          <label class="block font-semibold">Openings</label>
-          <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.openPositions }}</div>
+        <div class="border border-gray-200 rounded-lg p-4">
+          <label class="block text-sm font-semibold text-gray-600 mb-1">Open Positions</label>
+          <div class="text-gray-900">{{ jobRole.openPositions }}</div>
         </div>
       </div>
-      <div>
-        <label class="block font-semibold">Description</label>
-        <div class="bg-gray-100 rounded px-3 py-2">{{ jobRole.description }}</div>
+
+      <!-- Status -->
+      <div class="mb-6 flex items-center gap-2">
+        <span class="text-sm font-semibold text-gray-600">Status:</span>
+        <span class="px-3 py-1 rounded text-sm font-medium {% if jobRole.status == 'Open' %}bg-green-100 text-green-800{% else %}bg-gray-200 text-gray-700{% endif %}">
+          {{ jobRole.status }}
+        </span>
       </div>
-      <div>
-        <label class="block font-semibold">Responsibilities</label>
-        <div class="bg-gray-100 rounded px-3 py-2 whitespace-pre-line">{{ jobRole.responsibilities }}</div>
+
+      <!-- Divider -->
+      <div class="border-t border-gray-200 my-6"></div>
+
+      <!-- Description Section -->
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">Description</h2>
+        <div class="bg-gray-50 rounded-lg p-4 text-gray-700 leading-relaxed">
+          {{ jobRole.description }}
+        </div>
       </div>
-      <div>
-        <label class="block font-semibold">Job Spec</label>
-        <a href="{{ jobRole.sharepointUrl }}" target="_blank" rel="noopener" class="text-blue-700 underline">
-          View Job Spec
+
+      <!-- Responsibilities Section -->
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">Responsibilities</h2>
+        <div class="bg-gray-50 rounded-lg p-4 text-gray-700 leading-relaxed whitespace-pre-line">
+          {{ jobRole.responsibilities }}
+        </div>
+      </div>
+
+      <!-- Job Spec Link -->
+      <div class="mb-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">Job Specification</h2>
+        <a href="{{ jobRole.jobSpecLink }}" target="_blank" rel="noopener" 
+           class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-medium transition-colors">
+          View Full Job Specification
         </a>
       </div>
-    </form>
-    <div class="flex justify-center mt-8 space-x-4">
-      <a href="/job-roles" 
-         class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded font-semibold transition-colors">
-        Back to Job Roles
-      </a>
 
-      <div class="px-6 py-2">
-        {{ jobStatusMessage | safe }}
+      <!-- Divider -->
+      <div class="border-t border-gray-200 my-6"></div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+        <a href="/job-roles" 
+           class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded font-medium transition-colors">
+          ← Back to Job Roles
+        </a>
+
+        <div class="px-6 py-2">
+          {{ jobStatusMessage | safe }}
+        </div>
       </div>
     </div>
   </div>

@@ -53,14 +53,9 @@ describe('Frontend Environment Configuration', () => {
     });
 
     it('should handle various template rendering scenarios', async () => {
-      process.env.PORT = '3000';
-
-      const { default: appModule } = await import('../src/index');
-      app = appModule;
-
       const response = await request(app).get('/');
-      expect(response.status).toBe(200);
-      expect(response.text).toContain('Kainos Job Roles');
+      expect(response.status).toBe(302);
+      expect(response.header.location).toBe('/login');
     });
   });
 });

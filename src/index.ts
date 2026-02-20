@@ -36,10 +36,7 @@ app.use(authenticationRouter(authenticationController));
 
 // Routes
 app.get('/', (req, res) => {
-  res.render('index', {
-    title: 'Kainos Job Roles',
-    message: 'Welcome to the Kainos Job Application System',
-  });
+  res.redirect('/login');
 });
 
 app.get('/application-success', (req, res) => {
@@ -64,6 +61,13 @@ const applicationController = new ApplicationController(
 );
 
 JobRoleController(app, jobRoleService);
+
+// Leave last so it catches all unmatched routes and renders a 404 page
+app.use((req, res) => {
+  res.status(404).render('404', {
+    title: '404 - Page Not Found',
+  });
+});
 
 // Start server
 app.listen(PORT, () => {

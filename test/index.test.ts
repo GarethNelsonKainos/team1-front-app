@@ -4,12 +4,10 @@ import app from '../src/index';
 
 describe('Frontend Application', () => {
   describe('GET /', () => {
-    it('should render the home page', async () => {
+    it('should handle various template rendering scenarios', async () => {
       const response = await request(app).get('/');
-
-      expect(response.status).toBe(200);
-      expect(response.text).toContain('Kainos Job Roles');
-      expect(response.text).toContain('Find Your Next Opportunity');
+      expect(response.status).toBe(302);
+      expect(response.header.location).toBe('/login');
     });
   });
 
@@ -30,7 +28,6 @@ describe('Frontend Application', () => {
       expect(response.text).toContain('Sign In');
       expect(response.text).toContain('Email Address');
       expect(response.text).toContain('Password');
-      expect(response.text).toContain('Back to Job Listings');
     });
 
     it('should have the correct page title', async () => {
@@ -45,8 +42,6 @@ describe('Frontend Application', () => {
     it('should serve static files from public directory', async () => {
       const response = await request(app).get('/css/styles.css');
 
-      // Should attempt to serve static CSS file
-      // May return 404 if file doesn't exist, but should handle the request
       expect([200, 404]).toContain(response.status);
     });
   });
@@ -61,7 +56,7 @@ describe('Frontend Application', () => {
 
   describe('Template Rendering', () => {
     it('should render with Nunjucks template engine', async () => {
-      const response = await request(app).get('/');
+      const response = await request(app).get('/login');
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toMatch(/html/);
@@ -70,7 +65,6 @@ describe('Frontend Application', () => {
 
   describe('Environment Configuration', () => {
     it('should use environment PORT or default to 3000', () => {
-      // Test that the app is configured properly
       expect(app).toBeDefined();
     });
   });
