@@ -48,7 +48,6 @@ export default function JobRoleController(
           jobRoles: formattedJobRoles,
           user: res.locals.user,
           UserRole: UserRole,
-          canDelete: response.canDelete,
         });
       } catch (error: unknown) {
         console.error('Error in JobRoleController:', error);
@@ -65,11 +64,11 @@ export default function JobRoleController(
     authenticateJWT,
     async (req: Request, res: Response) => {
       try {
-        const idParam = Number(req.params.id);
-        const jobRole = await jobRoleService.getJobRoleById(idParam);
+        const idParam = req.params.id as string;
+        const jobRole = await jobRoleService.getJobRoleById(Number(idParam));
         const hasApplied = await jobRoleService.checkApplicationStatus(
           idParam,
-          token,
+          req.cookies.token,
         );
 
         const formattedClosingDate = formatTimestampToDateString(
@@ -81,8 +80,7 @@ export default function JobRoleController(
         const user = res.locals.user;
 
         if (!user) {
-          // Will be handled in template
-          jobStatusMessage = '';
+          jobStatusMessage = 'Sign in to apply';
         } else if (!isJobApplicationsEnabled()) {
           jobStatusMessage = 'Job applications are currently unavailable';
         } else if (
@@ -94,15 +92,14 @@ export default function JobRoleController(
           // Will be handled in template
           jobStatusMessage = '';
         } else {
-          // Will be handled in template
-          jobStatusMessage = '';
+          jobStatusMessage = 'Apply Now';
         }
 
         res.render('job-role-information', {
           title: jobRole.roleName,
           jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
-          canDelete: user.userRole === UserRole.Admin,
+          canDelete: user?.userRole === UserRole.Admin,
           isJobApplicationsEnabled: isJobApplicationsEnabled(),
           jobStatusMessage: jobStatusMessage,
           applicationStatus: { hasApplied },

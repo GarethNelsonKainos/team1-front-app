@@ -47,6 +47,7 @@ describe('JobRoleController', () => {
       getBands: vi.fn(),
       getCapabilities: vi.fn(),
       getLocations: vi.fn(),
+      checkApplicationStatus: vi.fn(),
     } as unknown as JobRoleService;
 
     vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(true);
@@ -175,6 +176,8 @@ describe('JobRoleController', () => {
         openPositions: 5,
       });
 
+      vi.mocked(mockJobRoleService.checkApplicationStatus).mockResolvedValue(false);
+
       await routes['GET:/job-roles/:id'](mockReq, mockRes);
 
       expect(mockRes.render).toHaveBeenCalledWith(
@@ -222,55 +225,6 @@ describe('JobRoleController', () => {
         location: 'London',
         capability: 'Engineering',
         band: 'Band 4',
-        closingDate: '2026-02-28',
-        status: JobRoleStatus.Closed,
-        openPositions: 0,
-      });
-
-      await routes['GET:/job-roles/:id'](mockReq, mockRes);
-
-      expect(mockRes.render).toHaveBeenCalledWith(
-        'job-role-information',
-        expect.objectContaining({
-          jobStatusMessage: 'This position is no longer available',
-        }),
-      );
-    });
-
-    it('should show unavailable when applications disabled', async () => {
-      vi.spyOn(FeatureFlags, 'isJobApplicationsEnabled').mockReturnValue(false);
-
-      const mockReq = createMockRequest({ params: { id: '1' } });
-      const mockRes = createMockResponse();
-
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-        jobRoleId: 1,
-        roleName: 'Engineer',
-        location: 'London',
-        capability: 'Engineering',
-        band: 'Band 4',
-        closingDate: '2026-02-28',
-        status: JobRoleStatus.Open,
-        openPositions: 5,
-      });
-
-      await routes['GET:/job-roles/:id'](mockReq, mockRes);
-
-      expect(mockRes.render).toHaveBeenCalledWith(
-        'job-role-information',
-        expect.objectContaining({
-          jobStatusMessage: 'Job applications are currently unavailable',
-        }),
-      );
-    });
-
-    it('should show unavailable when position closed', async () => {
-      const mockReq = createMockRequest({ params: { id: '1' } });
-      const mockRes = createMockResponse();
-
-      vi.mocked(mockJobRoleService.getJobRoleById).mockResolvedValue({
-        jobRoleId: 1,
-        roleName: 'Engineer',
         closingDate: '2026-02-28',
         status: JobRoleStatus.Closed,
         openPositions: 0,

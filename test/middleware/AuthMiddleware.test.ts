@@ -109,6 +109,8 @@ describe('AuthMiddleware', () => {
 
     mockReq.cookies = { token: 'some-token' };
 
+    statusMock.mockReturnValue({ render: renderMock });
+
     authenticateJWT(
       mockReq as Request,
       mockRes as Response,

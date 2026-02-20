@@ -12,11 +12,13 @@ vi.mock('axios');
 describe('JobRoleService', () => {
   let mockedGet: Mock;
   let mockedPost: Mock;
+  let mockedDelete: Mock;
   const service = new JobRoleService();
 
   beforeEach(() => {
     mockedGet = vi.mocked(axios).get as unknown as Mock;
     mockedPost = vi.mocked(axios).post as unknown as Mock;
+    mockedDelete = vi.mocked(axios).delete as unknown as Mock;
   });
 
   afterEach(() => {
