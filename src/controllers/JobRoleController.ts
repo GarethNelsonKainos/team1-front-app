@@ -38,7 +38,7 @@ export default function JobRoleController(
       try {
         const jobRoles = await jobRoleService.getJobRoles();
 
-        const formattedJobRoles = jobRoles.map((role) => ({
+        const formattedJobRoles = jobRoles.jobRoles.map((role) => ({
           ...role,
           closingDate: formatTimestampToDateString(role.closingDate),
         }));
@@ -99,7 +99,7 @@ export default function JobRoleController(
           title: jobRole.roleName,
           jobRole: jobRole,
           formattedClosingDate: formattedClosingDate,
-          canDelete: user?.userRole === UserRole.Admin,
+          canDelete: user?.userRole === UserRole.ADMIN,
           isJobApplicationsEnabled: isJobApplicationsEnabled(),
           jobStatusMessage: jobStatusMessage,
           applicationStatus: { hasApplied },
@@ -123,7 +123,7 @@ export default function JobRoleController(
       try {
         const idParam = req.params.id as string;
 
-        const jobRole = await jobRoleService.getJobRoleById(idParam);
+        const jobRole = await jobRoleService.getJobRoleById(Number(idParam));
 
         const formattedClosingDate = formatTimestampToDateString(
           jobRole.closingDate,
@@ -155,7 +155,7 @@ export default function JobRoleController(
         const id = Number(req.params.id);
         const user = res.locals.user;
 
-        if (user.userRole !== UserRole.Admin) {
+        if (user.userRole !== UserRole.ADMIN) {
           res.status(403).render('error', {
             title: 'Forbidden',
             message: 'You do not have permission to delete job roles.',
