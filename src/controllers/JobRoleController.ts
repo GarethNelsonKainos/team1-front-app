@@ -261,7 +261,7 @@ export default function JobRoleController(
     async (req: Request, res: Response) => {
       try {
         if (!isAddJobRoleEnabled()) {
-          res.status(403).render('error', {
+          res.status(404).render('error', {
             title: 'Feature Not Available',
             message: 'Adding job roles is currently not available.',
           });

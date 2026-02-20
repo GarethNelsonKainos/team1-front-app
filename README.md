@@ -8,8 +8,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Server runs on http://localhost:${PORT} (default is http://localhost:3000 when `PORT` is not set or is 3000 in `.env`)
-Uses Nunjucks templates + Tailwind CSS (CDN)
+Frontend dev server runs on http://localhost:${PORT} (default is http://localhost:3000 when `PORT` is not set or is 3000 in `.env`). The backend API (configured via `API_BASE_URL`) defaults to http://localhost:3001 unless otherwise specified.
 
 ## Linting
 

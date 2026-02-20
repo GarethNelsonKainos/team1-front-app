@@ -62,6 +62,9 @@ const applicationController = new ApplicationController(
 
 JobRoleController(app, jobRoleService);
 
+
+
+// Leave last so it catches all unmatched routes and renders a 404 page
 app.use((req, res) => {
   res.status(404).render('404', {
     title: '404 - Page Not Found',
