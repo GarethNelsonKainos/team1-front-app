@@ -125,11 +125,14 @@ describe('JobRoleService', () => {
 
     mockedGet.mockResolvedValue({ data: mockJobRole });
 
-    const result = await service.getJobRoleById(1);
+    const result = await service.getJobRoleById(1, 'mock-token');
 
     expect(result).toEqual(mockJobRole);
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles/1'),
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer mock-token' }
+      })
     );
   });
 
@@ -137,7 +140,7 @@ describe('JobRoleService', () => {
     const error = new Error('Network error');
     mockedGet.mockRejectedValue(error);
 
-    await expect(service.getJobRoleById(1)).rejects.toThrow();
+    await expect(service.getJobRoleById(1, 'mock-token')).rejects.toThrow();
   });
 
   it('should create job role successfully with single location', async () => {

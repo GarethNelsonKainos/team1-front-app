@@ -114,6 +114,7 @@ describe('JobRoleController', () => {
         ],
         user: mockRes.locals.user,
         UserRole: UserRole,
+        canDelete: true,
       });
     });
 

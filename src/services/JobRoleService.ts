@@ -58,9 +58,14 @@ export class JobRoleService {
     }
   }
 
-  async getJobRoleById(id: number): Promise<JobRole> {
+  async getJobRoleById(id: number, token: string): Promise<JobRole> {
     const { data } = await axios.get<JobRole>(
       `${API_BASE_URL}/api/job-roles/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
     );
     return data;
   }

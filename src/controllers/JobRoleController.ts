@@ -48,6 +48,7 @@ export default function JobRoleController(
           jobRoles: formattedJobRoles,
           user: res.locals.user,
           UserRole: UserRole,
+          canDelete: jobRoles.canDelete,
         });
       } catch (error: unknown) {
         console.error('Error in JobRoleController:', error);
@@ -65,7 +66,10 @@ export default function JobRoleController(
     async (req: Request, res: Response) => {
       try {
         const idParam = req.params.id as string;
-        const jobRole = await jobRoleService.getJobRoleById(Number(idParam));
+        const jobRole = await jobRoleService.getJobRoleById(
+          Number(idParam),
+          req.cookies.token,
+        );
         const hasApplied = await jobRoleService.checkApplicationStatus(
           idParam,
           req.cookies.token,
@@ -123,7 +127,10 @@ export default function JobRoleController(
       try {
         const idParam = req.params.id as string;
 
-        const jobRole = await jobRoleService.getJobRoleById(Number(idParam));
+        const jobRole = await jobRoleService.getJobRoleById(
+          Number(idParam),
+          req.cookies.token,
+        );
 
         const formattedClosingDate = formatTimestampToDateString(
           jobRole.closingDate,
@@ -192,7 +199,10 @@ export default function JobRoleController(
 
         const idParam = Number(req.params.id);
 
-        const jobRole = await jobRoleService.getJobRoleById(idParam);
+        const jobRole = await jobRoleService.getJobRoleById(
+          idParam,
+          req.cookies.token,
+        );
 
         res.render('job-apply', {
           title: `Apply for ${jobRole.roleName}`,
