@@ -131,8 +131,8 @@ describe('JobRoleService', () => {
     expect(mockedGet).toHaveBeenCalledWith(
       expect.stringContaining('/api/job-roles/1'),
       expect.objectContaining({
-        headers: { Authorization: 'Bearer mock-token' }
-      })
+        headers: { Authorization: 'Bearer mock-token' },
+      }),
     );
   });
 
