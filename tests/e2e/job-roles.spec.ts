@@ -1,30 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { JobRolesListPage } from '../pages/JobRolesListPage';
 import { LoginPage } from '../pages/LoginPage';
-
-const APPLICANT = { email: 'alice@example.com', password: 'password1' };
-const ADMIN = { email: 'charlie@example.com', password: 'adminpass' };
+import { ADMIN, APPLICANT } from './test-users';
 
 test.describe('Job Roles List', () => {
-  test('should display the job roles list after login', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(APPLICANT.email, APPLICANT.password);
-
-    const jobRolesPage = new JobRolesListPage(page);
-    await jobRolesPage.expectToBeOnJobRolesPage();
-  });
-
-  test('should show at least one job role card', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(APPLICANT.email, APPLICANT.password);
-
-    const jobRolesPage = new JobRolesListPage(page);
-    await expect(jobRolesPage.jobRoleCards.first()).toBeVisible();
-  });
-
-  test('applicant should NOT see the Add New Job Role button', async ({
+  test('applicant should see a populated job roles list with no admin controls', async ({
     page,
   }) => {
     const loginPage = new LoginPage(page);
@@ -32,6 +12,9 @@ test.describe('Job Roles List', () => {
     await loginPage.login(APPLICANT.email, APPLICANT.password);
 
     const jobRolesPage = new JobRolesListPage(page);
+    expect(await jobRolesPage.getUrl()).toContain('/job-roles');
+    expect(await jobRolesPage.getHeadingState()).toBe(true);
+    await expect(jobRolesPage.jobRoleCards.first()).toBeVisible();
     await expect(jobRolesPage.addNewRoleButton).not.toBeVisible();
   });
 

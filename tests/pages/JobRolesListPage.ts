@@ -1,4 +1,4 @@
-import { type Locator, type Page, expect } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class JobRolesListPage extends BasePage {
@@ -21,9 +21,12 @@ export class JobRolesListPage extends BasePage {
     await this.page.goto('/job-roles');
   }
 
-  async expectToBeOnJobRolesPage() {
-    await expect(this.page).toHaveURL('/job-roles');
-    await expect(this.heading).toBeVisible();
+  async getUrl(): Promise<string> {
+    return this.page.url();
+  }
+
+  async getHeadingState(): Promise<boolean> {
+    return this.heading.isVisible();
   }
 
   async clickFirstRole() {

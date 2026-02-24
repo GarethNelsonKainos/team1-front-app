@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
+import { ADMIN, APPLICANT } from './test-users';
 
-// Demo users from README
-const VALID_USER = { email: 'alice@example.com', password: 'password1' };
-const ADMIN_USER = { email: 'charlie@example.com', password: 'adminpass' };
+const VALID_USER = APPLICANT;
+const ADMIN_USER = ADMIN;
 
 test.describe('Login', () => {
   let loginPage: LoginPage;
@@ -36,14 +36,14 @@ test.describe('Login', () => {
 
   test('should show an error with wrong password', async () => {
     await loginPage.login(VALID_USER.email, 'wrongpassword');
-    await loginPage.expectToBeOnLoginPage();
-    await loginPage.expectErrorMessage('Invalid Credentials');
+    expect(await loginPage.getUrl()).toContain('/login');
+    expect(await loginPage.getErrorMessage()).toContain('Invalid Credentials');
   });
 
   test('should show an error with non-existent email', async () => {
     await loginPage.login('notauser@example.com', 'password1');
-    await loginPage.expectToBeOnLoginPage();
-    await loginPage.expectErrorMessage('Invalid Credentials');
+    expect(await loginPage.getUrl()).toContain('/login');
+    expect(await loginPage.getErrorMessage()).toContain('Invalid Credentials');
   });
 
   test('should redirect unauthenticated user to login when accessing /job-roles', async ({

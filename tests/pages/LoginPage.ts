@@ -1,4 +1,4 @@
-import { type Locator, type Page, expect } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class LoginPage extends BasePage {
@@ -31,10 +31,6 @@ export class LoginPage extends BasePage {
     await this.loginButton.click();
   }
 
-  async getErrorText(): Promise<string> {
-    return this.errorMessage.innerText();
-  }
-
   // Convenience method combining the three steps above
   async login(email: string, password: string) {
     await this.enterEmail(email);
@@ -42,12 +38,12 @@ export class LoginPage extends BasePage {
     await this.clickLogin();
   }
 
-  async expectErrorMessage(text: string) {
-    await expect(this.errorMessage).toBeVisible();
-    await expect(this.errorMessage).toContainText(text);
+  async getErrorMessage(): Promise<string> {
+    await this.errorMessage.waitFor({ state: 'visible' });
+    return this.errorMessage.innerText();
   }
 
-  async expectToBeOnLoginPage() {
-    await expect(this.page).toHaveURL(/\/login/);
+  async getUrl(): Promise<string> {
+    return this.page.url();
   }
 }

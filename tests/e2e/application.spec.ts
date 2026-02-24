@@ -1,9 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
+import { ADMIN, APPLICANT } from './test-users';
 
-// Alice has no seeded application for 'Low Code Principal Architect' — safe to apply each run
-const ALICE = { email: 'alice@example.com', password: 'password1' };
-const ADMIN = { email: 'charlie@example.com', password: 'adminpass' };
+// APPLICANT (Alice) has no seeded application for 'Low Code Principal Architect' — safe to apply each run
 const TARGET_ROLE = 'Low Code Principal Architect';
 
 test.describe('Apply for Role', () => {
@@ -13,7 +12,7 @@ test.describe('Apply for Role', () => {
     // 1. Login
     const loginPage = new LoginPage(page);
     await loginPage.goto();
-    await loginPage.login(ALICE.email, ALICE.password);
+    await loginPage.login(APPLICANT.email, APPLICANT.password);
     await expect(page).toHaveURL('/job-roles');
 
     // 2. Find the target role on the list and click it
@@ -41,7 +40,6 @@ test.describe('Apply for Role', () => {
     await expect(page).toHaveURL('/application-success');
   });
 
-  /* This test WORKS AS EXPECTED, different PR needed to fix admin applicant function for test to pass.
   test('admin should not be able to apply for a role', async ({ page }) => {
     // 1. Login as admin
     const loginPage = new LoginPage(page);
@@ -64,9 +62,7 @@ test.describe('Apply for Role', () => {
     await page.locator('#submitButton').click();
 
     // 4. Expect an error — admins should not be permitted to submit applications
-    // NOTE: This test currently FAILS — the app allows admin to apply successfully.
-    // This documents a missing business rule that needs to be implemented.
     await expect(page).not.toHaveURL('/application-success');
     await expect(page.locator('h1, h2')).toContainText(/error|not permitted|access denied/i);
-  });*/
+  });
 });
