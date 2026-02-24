@@ -63,6 +63,8 @@ test.describe('Apply for Role', () => {
 
     // 4. Expect an error — admins should not be permitted to submit applications
     await expect(page).not.toHaveURL('/application-success');
-    await expect(page.locator('h1, h2')).toContainText(/error|not permitted|access denied/i);
+    await expect(page.locator('h1, h2')).toContainText(
+      /error|not permitted|access denied/i,
+    );
   });
 });
