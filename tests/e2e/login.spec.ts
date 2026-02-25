@@ -45,4 +45,10 @@ test.describe('Login', () => {
     expect(await loginPage.getUrl()).toContain('/login');
     expect(await loginPage.getErrorMessage()).toContain('Invalid Credentials');
   });
+
+  test('should sign out successfully', async ({ page }) => {
+    await loginPage.login(VALID_USER.email, VALID_USER.password);
+    await loginPage.signOut();
+    await expect(page).toHaveURL('/login');
+  });
 });
