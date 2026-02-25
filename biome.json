@@ -6,6 +6,7 @@
       "dist/**",
       "coverage/**",
       "playwright-report/**",
+      "cucumber-report.html",
       "*.d.ts",
       "*.js",
       "public/**"

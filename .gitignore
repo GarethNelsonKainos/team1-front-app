@@ -15,4 +15,5 @@ coverage/
 *.lcov
 test-results/
 playwright-report/
+cucumber-report.html
 tests/.env
