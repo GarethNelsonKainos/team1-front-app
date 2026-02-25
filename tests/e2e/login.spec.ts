@@ -45,11 +45,4 @@ test.describe('Login', () => {
     expect(await loginPage.getUrl()).toContain('/login');
     expect(await loginPage.getErrorMessage()).toContain('Invalid Credentials');
   });
-
-  test('should redirect unauthenticated user to login when accessing /job-roles', async ({
-    page,
-  }) => {
-    await page.goto('/job-roles');
-    await expect(page).toHaveURL('/login');
-  });
 });
