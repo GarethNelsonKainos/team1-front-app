@@ -1,5 +1,4 @@
-import { test } from '@playwright/test';
-import { ProtectedRoutesPage } from '../pages/ProtectedRoutesPage';
+import { expect, test } from '@playwright/test';
 
 test.describe('Protected Routes', () => {
   test.beforeEach(async ({ page }) => {
@@ -9,16 +8,14 @@ test.describe('Protected Routes', () => {
   test('should redirect unauthenticated user to login when accessing /job-roles', async ({
     page,
   }) => {
-    const protectedRoutesPage = new ProtectedRoutesPage(page);
-    await protectedRoutesPage.gotoJobRoles();
-    await protectedRoutesPage.expectRedirectedToLogin();
+    await page.goto('/job-roles');
+    await expect(page).toHaveURL('/login');
   });
 
   test('should redirect unauthenticated user to login when accessing /add-role', async ({
     page,
   }) => {
-    const protectedRoutesPage = new ProtectedRoutesPage(page);
-    await protectedRoutesPage.gotoAddRole();
-    await protectedRoutesPage.expectRedirectedToLogin();
+    await page.goto('/add-role');
+    await expect(page).toHaveURL('/login');
   });
 });
