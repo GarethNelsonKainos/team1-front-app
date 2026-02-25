@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { ADMIN } from '../config/test-users';
 import { AddRolePage } from '../pages/AddRolePage';
 import { LoginPage } from '../pages/LoginPage';
-import { ADMIN } from './test-users';
 
 test.describe('Add New Job Role', () => {
   test.beforeEach(async ({ page }) => {

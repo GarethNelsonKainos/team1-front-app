@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
+import { ADMIN, APPLICANT } from '../config/test-users';
 import { LoginPage } from '../pages/LoginPage';
-import { ADMIN, APPLICANT } from './test-users';
 
 const VALID_USER = APPLICANT;
 const ADMIN_USER = ADMIN;

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { ADMIN, APPLICANT } from '../config/test-users';
 import { JobRolesListPage } from '../pages/JobRolesListPage';
 import { LoginPage } from '../pages/LoginPage';
-import { ADMIN, APPLICANT } from './test-users';
 
 test.describe('Job Roles List', () => {
   test('applicant should see a populated job roles list with no admin controls', async ({
