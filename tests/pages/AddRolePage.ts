@@ -110,4 +110,75 @@ export class AddRolePage extends BasePage {
   async getDescriptionErrorText(): Promise<string> {
     return this.descriptionError.innerText();
   }
+
+  async isRoleNameErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="role-name-error"], .error-message:near(#role-name)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async isCapabilityErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="capability-error"], .error-message:near(#capability)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async isBandErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="band-error"], .error-message:near(#band)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async isJobSpecLinkErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="job-spec-link-error"], .error-message:near(#job-spec-link)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async isResponsibilitiesErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="responsibilities-error"], .error-message:near(#responsibilities)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async isLocationErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="location-error"], .error-message:near(#location)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async isClosingDateErrorVisible(): Promise<boolean> {
+    const errorLocator = this.page.locator(
+      '[data-testid="closing-date-error"], .error-message:near(#closing-date)',
+    );
+    return await errorLocator.isVisible();
+  }
+
+  async getRoleNameErrorText(): Promise<string> {
+    const errorLocator = this.page.locator(
+      '[data-testid="role-name-error"], .error-message:near(#role-name)',
+    );
+    return (await errorLocator.textContent()) || '';
+  }
+
+  async getClosingDateErrorText(): Promise<string> {
+    const errorLocator = this.page.locator(
+      '[data-testid="closing-date-error"], .error-message:near(#closing-date)',
+    );
+    return (await errorLocator.textContent()) || '';
+  }
+
+  async selectMultipleLocations() {
+    await this.page.locator('[data-testid="location-select"]').first().click();
+    await this.page.locator('[data-testid="location-option"]').first().click();
+
+    await this.page.locator('[data-testid="location-select"]').click();
+    await this.page.locator('[data-testid="location-option"]').nth(1).click();
+  }
 }
