@@ -15,11 +15,15 @@ test.describe('Add New Job Role', () => {
   });
 
   test('admin can successfully create a new job role', async ({ page }) => {
+    // Given an admin is on the add-role page with valid form data
     const roleName = `E2E Test Role ${Date.now()}`;
     const addRolePage = new AddRolePage(page);
     await addRolePage.fillValidForm({ roleName });
+
+    // When the admin submits the form
     await addRolePage.submit();
 
+    // Then the admin is redirected to the job roles list and the newly created job role is visible in the list
     await expect(page).toHaveURL('/job-roles');
     const jobRolesPage = new JobRolesListPage(page);
     expect(await jobRolesPage.isRoleVisible(roleName)).toBe(true);
