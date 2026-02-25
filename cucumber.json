@@ -1,0 +1,7 @@
+{
+  "default": {
+    "paths": ["tests/cucumber/features/**/*.feature"],
+    "import": ["tests/cucumber/support/*.ts", "tests/cucumber/steps/*.ts"],
+    "format": ["progress-bar", "html:cucumber-report.html"]
+  }
+}
