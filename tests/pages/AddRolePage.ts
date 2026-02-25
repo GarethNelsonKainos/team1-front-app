@@ -67,28 +67,43 @@ export class AddRolePage extends BasePage {
     return this.page.url();
   }
 
+  /**
+   * Selects an option from a dropdown, either by label or selects the first non-empty option
+   * @param select - The select element locator
+   * @param value - Optional specific value/label to select
+   */
+  private async selectDropdownOption(select: Locator, value?: string) {
+    if (value !== undefined && value !== '') {
+      await select.selectOption({ label: value });
+    } else {
+      const firstOption = await select
+        .locator('option:not([value=""])')
+        .first()
+        .getAttribute('value');
+      if (firstOption) {
+        await select.selectOption(firstOption);
+      }
+    }
+  }
+
   async fillRoleName(value: string) {
     await this.roleNameInput.clear();
     await this.roleNameInput.fill(value);
-    await this.roleNameInput.dispatchEvent('input');
   }
 
   async fillDescription(value: string) {
     await this.descriptionInput.clear();
     await this.descriptionInput.fill(value);
-    await this.descriptionInput.dispatchEvent('input');
   }
 
   async fillResponsibilities(value: string) {
     await this.responsibilitiesInput.clear();
     await this.responsibilitiesInput.fill(value);
-    await this.responsibilitiesInput.dispatchEvent('input');
   }
 
   async fillJobSpecLink(value: string) {
     await this.jobSpecLinkInput.clear();
     await this.jobSpecLinkInput.fill(value);
-    await this.jobSpecLinkInput.dispatchEvent('input');
   }
 
   async fillValidForm(overrides: Record<string, string> = {}) {
@@ -109,30 +124,14 @@ export class AddRolePage extends BasePage {
       await this.fillRoleName(values.roleName);
     }
 
-    // Capability - select first available option if not specified
-    if (values.capability !== undefined && values.capability !== '') {
-      await this.capabilitySelect.selectOption({ label: values.capability });
-    } else if (values.capability !== '') {
-      const firstOption = await this.capabilitySelect
-        .locator('option:not([value=""])')
-        .first()
-        .getAttribute('value');
-      if (firstOption) {
-        await this.capabilitySelect.selectOption(firstOption);
-      }
+    // Capability - using reusable method
+    if (values.capability === undefined || values.capability !== '') {
+      await this.selectDropdownOption(this.capabilitySelect, values.capability);
     }
 
-    // Band - select first available option if not specified
-    if (values.band !== undefined && values.band !== '') {
-      await this.bandSelect.selectOption({ label: values.band });
-    } else if (values.band !== '') {
-      const firstOption = await this.bandSelect
-        .locator('option:not([value=""])')
-        .first()
-        .getAttribute('value');
-      if (firstOption) {
-        await this.bandSelect.selectOption(firstOption);
-      }
+    // Band - using reusable method
+    if (values.band === undefined || values.band !== '') {
+      await this.selectDropdownOption(this.bandSelect, values.band);
     }
 
     // Description
@@ -155,23 +154,15 @@ export class AddRolePage extends BasePage {
       await this.openPositionsInput.fill(values.openPositions);
     }
 
-    // Location - select first available option if not specified
-    if (values.location !== undefined && values.location !== '') {
-      await this.locationSelect.selectOption({ label: values.location });
-    } else if (values.location !== '') {
-      const firstOption = await this.locationSelect
-        .locator('option')
-        .first()
-        .getAttribute('value');
-      if (firstOption) {
-        await this.locationSelect.selectOption(firstOption);
-      }
+    // Location - using reusable method
+    if (values.location === undefined || values.location !== '') {
+      await this.selectDropdownOption(this.locationSelect, values.location);
     }
 
     // Closing Date - set to 1 year from now if not specified
     if (values.closingDate !== undefined && values.closingDate !== '') {
       await this.closingDateInput.fill(values.closingDate);
-    } else if (values.closingDate !== '') {
+    } else if (values.closingDate === undefined) {
       const closingDate = new Date();
       closingDate.setFullYear(closingDate.getFullYear() + 1);
       await this.closingDateInput.fill(closingDate.toISOString().split('T')[0]);
@@ -195,7 +186,6 @@ export class AddRolePage extends BasePage {
     await this.bandSelect.selectOption('');
   }
 
-  // ACCEPTABLE - Complex DOM manipulation that can't be done with Locators
   async clearLocationSelection() {
     await this.page.evaluate(() => {
       const select = document.getElementById('location') as HTMLSelectElement;
