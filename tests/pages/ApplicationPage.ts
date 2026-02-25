@@ -2,12 +2,12 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class ApplicationPage extends BasePage {
-  readonly roleHeading: Locator;
-  readonly applyNowButton: Locator;
-  readonly applyFormHeading: Locator;
-  readonly cvInput: Locator;
-  readonly submitButton: Locator;
-  readonly errorHeading: Locator;
+  private readonly roleHeading: Locator;
+  private readonly applyNowButton: Locator;
+  private readonly applyFormHeading: Locator;
+  private readonly cvInput: Locator;
+  private readonly submitButton: Locator;
+  private readonly errorHeading: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -41,5 +41,17 @@ export class ApplicationPage extends BasePage {
 
   async getUrl(): Promise<string> {
     return this.page.url();
+  }
+
+  async getRoleHeadingText(): Promise<string> {
+    return this.roleHeading.innerText();
+  }
+
+  async getApplyFormHeadingText(): Promise<string> {
+    return this.applyFormHeading.innerText();
+  }
+
+  async getErrorHeadingText(): Promise<string> {
+    return this.errorHeading.innerText();
   }
 }

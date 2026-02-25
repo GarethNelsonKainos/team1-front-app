@@ -2,17 +2,17 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class AddRolePage extends BasePage {
-  readonly roleNameInput: Locator;
-  readonly capabilitySelect: Locator;
-  readonly bandSelect: Locator;
-  readonly descriptionInput: Locator;
-  readonly jobSpecLinkInput: Locator;
-  readonly responsibilitiesInput: Locator;
-  readonly openPositionsInput: Locator;
-  readonly locationSelect: Locator;
-  readonly closingDateInput: Locator;
-  readonly submitButton: Locator;
-  readonly descriptionError: Locator;
+  private readonly roleNameInput: Locator;
+  private readonly capabilitySelect: Locator;
+  private readonly bandSelect: Locator;
+  private readonly descriptionInput: Locator;
+  private readonly jobSpecLinkInput: Locator;
+  private readonly responsibilitiesInput: Locator;
+  private readonly openPositionsInput: Locator;
+  private readonly locationSelect: Locator;
+  private readonly closingDateInput: Locator;
+  private readonly submitButton: Locator;
+  private readonly descriptionError: Locator;
 
   static readonly VALID_FORM_DEFAULTS: Record<string, string> = {
     roleName: 'E2E Test Role',
@@ -69,5 +69,45 @@ export class AddRolePage extends BasePage {
 
   async submit() {
     await this.submitButton.click();
+  }
+
+  async isRoleNameValueMissing(): Promise<boolean> {
+    return this.roleNameInput.evaluate(
+      (el: HTMLInputElement) => el.validity.valueMissing,
+    );
+  }
+
+  async isRoleNameTooShort(): Promise<boolean> {
+    return this.roleNameInput.evaluate(
+      (el: HTMLInputElement) => el.validity.tooShort,
+    );
+  }
+
+  async clearCapabilitySelection() {
+    await this.capabilitySelect.selectOption('');
+  }
+
+  async isCapabilityValueMissing(): Promise<boolean> {
+    return this.capabilitySelect.evaluate(
+      (el: HTMLSelectElement) => el.validity.valueMissing,
+    );
+  }
+
+  async clearBandSelection() {
+    await this.bandSelect.selectOption('');
+  }
+
+  async isBandValueMissing(): Promise<boolean> {
+    return this.bandSelect.evaluate(
+      (el: HTMLSelectElement) => el.validity.valueMissing,
+    );
+  }
+
+  async isDescriptionErrorVisible(): Promise<boolean> {
+    return this.descriptionError.isVisible();
+  }
+
+  async getDescriptionErrorText(): Promise<string> {
+    return this.descriptionError.innerText();
   }
 }

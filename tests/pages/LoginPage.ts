@@ -2,10 +2,10 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class LoginPage extends BasePage {
-  readonly emailInput: Locator;
-  readonly passwordInput: Locator;
-  readonly loginButton: Locator;
-  readonly errorMessage: Locator;
+  private readonly emailInput: Locator;
+  private readonly passwordInput: Locator;
+  private readonly loginButton: Locator;
+  private readonly errorMessage: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -41,6 +41,18 @@ export class LoginPage extends BasePage {
   async getErrorMessage(): Promise<string> {
     await this.errorMessage.waitFor({ state: 'visible' });
     return this.errorMessage.innerText();
+  }
+
+  async isEmailInputVisible(): Promise<boolean> {
+    return this.emailInput.isVisible();
+  }
+
+  async isPasswordInputVisible(): Promise<boolean> {
+    return this.passwordInput.isVisible();
+  }
+
+  async isLoginButtonVisible(): Promise<boolean> {
+    return this.loginButton.isVisible();
   }
 
   async getUrl(): Promise<string> {

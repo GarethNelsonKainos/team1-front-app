@@ -15,9 +15,9 @@ test.describe('Login', () => {
 
   test('should show the login page', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
-    await expect(loginPage.emailInput).toBeVisible();
-    await expect(loginPage.passwordInput).toBeVisible();
-    await expect(loginPage.loginButton).toBeVisible();
+    expect(await loginPage.isEmailInputVisible()).toBe(true);
+    expect(await loginPage.isPasswordInputVisible()).toBe(true);
+    expect(await loginPage.isLoginButtonVisible()).toBe(true);
   });
 
   test('should log in successfully with valid applicant credentials', async ({

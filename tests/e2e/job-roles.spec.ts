@@ -14,8 +14,8 @@ test.describe('Job Roles List', () => {
     const jobRolesPage = new JobRolesListPage(page);
     expect(await jobRolesPage.getUrl()).toContain('/job-roles');
     expect(await jobRolesPage.getHeadingState()).toBe(true);
-    await expect(jobRolesPage.jobRoleCards.first()).toBeVisible();
-    await expect(jobRolesPage.addNewRoleButton).not.toBeVisible();
+    expect(await jobRolesPage.isFirstJobRoleCardVisible()).toBe(true);
+    expect(await jobRolesPage.isAddNewRoleButtonVisible()).toBe(false);
   });
 
   test('admin should see the Add New Job Role button', async ({ page }) => {
@@ -24,7 +24,7 @@ test.describe('Job Roles List', () => {
     await loginPage.login(ADMIN.email, ADMIN.password);
 
     const jobRolesPage = new JobRolesListPage(page);
-    await expect(jobRolesPage.addNewRoleButton).toBeVisible();
+    expect(await jobRolesPage.isAddNewRoleButtonVisible()).toBe(true);
   });
 
   test('should navigate to job role detail page on click', async ({ page }) => {

@@ -2,10 +2,10 @@ import type { Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 
 export class JobRolesListPage extends BasePage {
-  readonly heading: Locator;
-  readonly jobRoleCards: Locator;
-  readonly addNewRoleButton: Locator;
-  readonly noRolesMessage: Locator;
+  private readonly heading: Locator;
+  private readonly jobRoleCards: Locator;
+  private readonly addNewRoleButton: Locator;
+  private readonly noRolesMessage: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -27,6 +27,14 @@ export class JobRolesListPage extends BasePage {
 
   async getHeadingState(): Promise<boolean> {
     return this.heading.isVisible();
+  }
+
+  async isFirstJobRoleCardVisible(): Promise<boolean> {
+    return this.jobRoleCards.first().isVisible();
+  }
+
+  async isAddNewRoleButtonVisible(): Promise<boolean> {
+    return this.addNewRoleButton.isVisible();
   }
 
   async clickFirstRole() {

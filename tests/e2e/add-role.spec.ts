@@ -36,10 +36,7 @@ test.describe('Add New Job Role', () => {
     await addRolePage.submit();
 
     await expect(page).toHaveURL('/add-role');
-    const valueMissing = await addRolePage.roleNameInput.evaluate(
-      (el: HTMLInputElement) => el.validity.valueMissing,
-    );
-    expect(valueMissing).toBe(true);
+    expect(await addRolePage.isRoleNameValueMissing()).toBe(true);
   });
 
   test('should block submission when role name is too short', async ({
@@ -50,10 +47,7 @@ test.describe('Add New Job Role', () => {
     await addRolePage.submit();
 
     await expect(page).toHaveURL('/add-role');
-    const tooShort = await addRolePage.roleNameInput.evaluate(
-      (el: HTMLInputElement) => el.validity.tooShort,
-    );
-    expect(tooShort).toBe(true);
+    expect(await addRolePage.isRoleNameTooShort()).toBe(true);
   });
 
   test('should block submission when no capability is selected', async ({
@@ -61,27 +55,21 @@ test.describe('Add New Job Role', () => {
   }) => {
     const addRolePage = new AddRolePage(page);
     await addRolePage.fillValidForm();
-    await addRolePage.capabilitySelect.selectOption('');
+    await addRolePage.clearCapabilitySelection();
     await addRolePage.submit();
 
     await expect(page).toHaveURL('/add-role');
-    const valueMissing = await addRolePage.capabilitySelect.evaluate(
-      (el: HTMLSelectElement) => el.validity.valueMissing,
-    );
-    expect(valueMissing).toBe(true);
+    expect(await addRolePage.isCapabilityValueMissing()).toBe(true);
   });
 
   test('should block submission when no band is selected', async ({ page }) => {
     const addRolePage = new AddRolePage(page);
     await addRolePage.fillValidForm();
-    await addRolePage.bandSelect.selectOption('');
+    await addRolePage.clearBandSelection();
     await addRolePage.submit();
 
     await expect(page).toHaveURL('/add-role');
-    const valueMissing = await addRolePage.bandSelect.evaluate(
-      (el: HTMLSelectElement) => el.validity.valueMissing,
-    );
-    expect(valueMissing).toBe(true);
+    expect(await addRolePage.isBandValueMissing()).toBe(true);
   });
 
   // JS validation (description has no minlength HTML attribute — JS catches this)
@@ -92,8 +80,8 @@ test.describe('Add New Job Role', () => {
     await addRolePage.submit();
 
     await expect(page).toHaveURL('/add-role');
-    await expect(addRolePage.descriptionError).toBeVisible();
-    await expect(addRolePage.descriptionError).toContainText(
+    expect(await addRolePage.isDescriptionErrorVisible()).toBe(true);
+    expect(await addRolePage.getDescriptionErrorText()).toContain(
       'at least 10 characters',
     );
   });

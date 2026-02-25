@@ -20,11 +20,11 @@ test.describe('Apply for Role', () => {
 
     await appPage.clickRoleByName(TARGET_ROLE);
     await expect(page).toHaveURL(/\/job-roles\/\d+/);
-    await expect(appPage.roleHeading).toContainText(TARGET_ROLE);
+    expect(await appPage.getRoleHeadingText()).toContain(TARGET_ROLE);
 
     await appPage.clickApplyNow();
     await expect(page).toHaveURL(/\/job-roles\/\d+\/apply/);
-    await expect(appPage.applyFormHeading).toContainText('Apply for');
+    expect(await appPage.getApplyFormHeadingText()).toContain('Apply for');
 
     await appPage.uploadCv(MOCK_PDF);
     await appPage.submitApplication();
@@ -50,7 +50,7 @@ test.describe('Apply for Role', () => {
 
     // Admins should not be permitted to submit applications
     await expect(page).not.toHaveURL('/application-success');
-    await expect(appPage.errorHeading).toContainText(
+    expect(await appPage.getErrorHeadingText()).toMatch(
       /error|not permitted|access denied/i,
     );
   });
