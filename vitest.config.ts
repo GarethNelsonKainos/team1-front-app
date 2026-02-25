@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'node',
-    exclude: ['node_modules/**', 'dist/**', 'tests/**'],
+    exclude: ['node_modules/**', 'dist/**', 'tests/**', 'playwright-report/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
@@ -13,6 +13,7 @@ export default defineConfig({
         '*.config.*',
         'public/**',
         'tests/**',
+        'playwright-report/**',
       ],
       thresholds: {
         branches: 80,
