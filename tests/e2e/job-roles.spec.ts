@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { ADMIN, APPLICANT } from '../config/test-users';
+import { JobRoleDetailPage } from '../pages/JobRoleDetailPage';
 import { JobRolesListPage } from '../pages/JobRolesListPage';
 import { LoginPage } from '../pages/LoginPage';
 
@@ -36,6 +37,7 @@ test.describe('Job Roles List', () => {
     await jobRolesPage.clickFirstRole();
 
     await expect(page).toHaveURL(/\/job-roles\/\d+/);
-    await expect(page.locator('h1')).toBeVisible();
+    const detailPage = new JobRoleDetailPage(page);
+    expect(await detailPage.isHeadingVisible()).toBe(true);
   });
 });

@@ -40,4 +40,8 @@ export class JobRolesListPage extends BasePage {
   async clickFirstRole() {
     await this.jobRoleCards.first().click();
   }
+
+  async isRoleVisible(name: string): Promise<boolean> {
+    return this.page.getByRole('link', { name: new RegExp(name) }).isVisible();
+  }
 }

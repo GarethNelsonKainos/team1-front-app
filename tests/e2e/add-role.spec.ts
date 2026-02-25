@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { ADMIN } from '../config/test-users';
 import { AddRolePage } from '../pages/AddRolePage';
+import { JobRolesListPage } from '../pages/JobRolesListPage';
 import { LoginPage } from '../pages/LoginPage';
 
 test.describe('Add New Job Role', () => {
@@ -20,9 +21,8 @@ test.describe('Add New Job Role', () => {
     await addRolePage.submit();
 
     await expect(page).toHaveURL('/job-roles');
-    await expect(
-      page.getByRole('link', { name: new RegExp(roleName) }),
-    ).toBeVisible();
+    const jobRolesPage = new JobRolesListPage(page);
+    expect(await jobRolesPage.isRoleVisible(roleName)).toBe(true);
   });
 
   // Browser native validation (required / minlength HTML attributes block submission

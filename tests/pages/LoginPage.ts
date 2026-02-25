@@ -6,6 +6,7 @@ export class LoginPage extends BasePage {
   private readonly passwordInput: Locator;
   private readonly loginButton: Locator;
   private readonly errorMessage: Locator;
+  private readonly signInHeading: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -13,6 +14,7 @@ export class LoginPage extends BasePage {
     this.passwordInput = page.locator('#password');
     this.loginButton = page.locator('button[type="submit"]');
     this.errorMessage = page.locator('.bg-red-100');
+    this.signInHeading = page.getByRole('heading', { name: 'Sign In' });
   }
 
   async goto() {
@@ -53,6 +55,10 @@ export class LoginPage extends BasePage {
 
   async isLoginButtonVisible(): Promise<boolean> {
     return this.loginButton.isVisible();
+  }
+
+  async isSignInHeadingVisible(): Promise<boolean> {
+    return this.signInHeading.isVisible();
   }
 
   async getUrl(): Promise<string> {
