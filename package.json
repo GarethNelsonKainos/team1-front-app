@@ -9,6 +9,7 @@
     "start": "tsx src/index.ts",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
+    "test:e2e": "playwright test",
     "check": "biome check .",
     "check:fix": "biome check . --write"
   },
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
+    "@playwright/test": "^1.58.2",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^25.2.2",

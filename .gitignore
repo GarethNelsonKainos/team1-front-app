@@ -13,3 +13,6 @@ coverage/
 public/css/styles.css
 coverage/
 *.lcov
+test-results/
+playwright-report/
+tests/.env
