@@ -1,5 +1,5 @@
-import { Given, When, Then } from '@cucumber/cucumber';
-import { expect, Page } from '@playwright/test';
+import { Given, Then, When } from '@cucumber/cucumber';
+import { type Page, expect } from '@playwright/test';
 import { APPLICANT } from '../../config/test-users';
 import { JobRoleDetailPage } from '../../pages/JobRoleDetailPage';
 import { JobRolesListPage } from '../../pages/JobRolesListPage';
@@ -22,36 +22,36 @@ When('I view the first job role', async function () {
   detailPage = new JobRoleDetailPage(this.page);
 });
 
-Then('I should see the job role heading', async function () {
+Then('I should see the job role heading', async () => {
   expect(await detailPage.isHeadingVisible()).toBe(true);
 });
 
-Then('I should see the location', async function () {
+Then('I should see the location', async () => {
   expect(await detailPage.getLocation()).toBeTruthy();
 });
 
-Then('I should see the capability', async function () {
+Then('I should see the capability', async () => {
   expect(await detailPage.getCapability()).toBeTruthy();
 });
 
-Then('I should see the band', async function () {
+Then('I should see the band', async () => {
   expect(await detailPage.getBand()).toBeTruthy();
 });
 
-Then('I should see the closing date in DD/MM/YYYY format', async function () {
+Then('I should see the closing date in DD/MM/YYYY format', async () => {
   const closingDate = await detailPage.getClosingDate();
   expect(closingDate).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
 });
 
-Then('I should see the open positions', async function () {
+Then('I should see the open positions', async () => {
   expect(await detailPage.getOpenPositions()).toBeTruthy();
 });
 
-Then('I should see the apply button', async function () {
+Then('I should see the apply button', async () => {
   expect(await detailPage.isApplyButtonVisible()).toBe(true);
 });
 
-Then('the apply button should be enabled', async function () {
+Then('the apply button should be enabled', async () => {
   expect(await detailPage.isApplyButtonDisabled()).toBe(false);
 });
 
@@ -62,7 +62,7 @@ When('there are no open positions', async function () {
   }
 });
 
-Then('the apply button should be disabled', async function () {
+Then('the apply button should be disabled', async () => {
   expect(await detailPage.isApplyButtonDisabled()).toBe(true);
 });
 
@@ -71,6 +71,6 @@ When('I navigate to a non-existent job role', async function () {
   detailPage = new JobRoleDetailPage(this.page);
 });
 
-Then('I should see an error message', async function () {
+Then('I should see an error message', async () => {
   expect(await detailPage.isErrorMessageVisible()).toBe(true);
 });
