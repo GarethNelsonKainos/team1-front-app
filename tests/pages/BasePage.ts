@@ -31,5 +31,7 @@ export class BasePage {
 
   async getUrl(): Promise<string> {
     return this.page.url();
+  async signOut() {
+    await this.logoutButton.click();
   }
 }
