@@ -10,6 +10,7 @@ export class JobRoleDetailPage extends BasePage {
   private readonly openPositions: Locator;
   private readonly applyButton: Locator;
   private readonly errorMessage: Locator;
+  private readonly backToJobRolesButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -33,6 +34,7 @@ export class JobRoleDetailPage extends BasePage {
       .last();
     this.applyButton = page.locator('a:has-text("Apply Now")');
     this.errorMessage = page.locator('text=Unable to load');
+    this.backToJobRolesButton = page.locator('a:has-text("Back to Job Roles")');
   }
 
   async isHeadingVisible(): Promise<boolean> {
@@ -73,5 +75,13 @@ export class JobRoleDetailPage extends BasePage {
 
   async isErrorMessageVisible(): Promise<boolean> {
     return this.errorMessage.isVisible();
+  }
+  
+  async clickBackToJobRoles(): Promise<void> {
+    await this.backToJobRolesButton.click();
+  }
+
+  async getUrl(): Promise<string> {
+    return this.page.url();
   }
 }
