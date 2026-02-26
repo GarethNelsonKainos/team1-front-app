@@ -1,72 +1,67 @@
 import { Given, Then, When } from '@cucumber/cucumber';
-import { type Page, expect } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { APPLICANT } from '../../config/test-users';
 import { JobRoleDetailPage } from '../../pages/JobRoleDetailPage';
 import { JobRolesListPage } from '../../pages/JobRolesListPage';
 import { LoginPage } from '../../pages/LoginPage';
+import type { PlaywrightWorld } from '../support/world';
 
-let page: Page;
 let loginPage: LoginPage;
 let jobRolesPage: JobRolesListPage;
 let detailPage: JobRoleDetailPage;
 
-Given('I am currently logged in as an applicant', async function () {
-  loginPage = new LoginPage(this.page);
+Given('I am logged in as an applicant', async function (this: PlaywrightWorld) {
+  const loginPage = new LoginPage(this.page);
   await loginPage.goto();
   await loginPage.login(APPLICANT.email, APPLICANT.password);
+  expect(await loginPage.getUrl()).toContain('/job-roles');
 });
-
-When('I view the first job role', async function () {
+When('I view the first job role', async function (this: PlaywrightWorld) {
+  if (!this.page) {
+    throw new Error('Playwright page is not available in the current world');
+  }
   jobRolesPage = new JobRolesListPage(this.page);
   await jobRolesPage.clickFirstRole();
   detailPage = new JobRoleDetailPage(this.page);
 });
-
-Then('I should see the job role heading', async () => {
+Then('I should see the job role heading', async function (this: PlaywrightWorld) {
   expect(await detailPage.isHeadingVisible()).toBe(true);
 });
-
-Then('I should see the location', async () => {
+Then('I should see the location', async function (this: PlaywrightWorld) {
   expect(await detailPage.getLocation()).toBeTruthy();
 });
-
-Then('I should see the capability', async () => {
+Then('I should see the capability', async function (this: PlaywrightWorld) {
   expect(await detailPage.getCapability()).toBeTruthy();
 });
-
-Then('I should see the band', async () => {
+Then('I should see the band', async function (this: PlaywrightWorld) {
   expect(await detailPage.getBand()).toBeTruthy();
 });
-
-Then('I should see the closing date in DD/MM/YYYY format', async () => {
+Then('I should see the closing date in DD/MM/YYYY format', async function (this: PlaywrightWorld) {
   const closingDate = await detailPage.getClosingDate();
   expect(closingDate).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
 });
-
-Then('I should see the open positions', async () => {
+Then('I should see the open positions', async function (this: PlaywrightWorld) {
   expect(await detailPage.getOpenPositions()).toBeTruthy();
 });
-
-Then('I should see the apply button', async () => {
+Then('I should see the apply button', async function (this: PlaywrightWorld) {
   expect(await detailPage.isApplyButtonVisible()).toBe(true);
 });
-
-Then('the apply button should be enabled', async () => {
+Then('the apply button should be enabled', async function (this: PlaywrightWorld) {
   expect(await detailPage.isApplyButtonDisabled()).toBe(false);
 });
-
-When('there are no open positions', async function () {
+When('there are no open positions', async function (this: PlaywrightWorld) {
   const openPositions = await detailPage.getOpenPositions();
   if (openPositions !== '0') {
     this.skip();
   }
 });
-
-Then('the apply button should be disabled', async () => {
+Then('the apply button should be disabled', async function (this: PlaywrightWorld) {
   expect(await detailPage.isApplyButtonDisabled()).toBe(true);
 });
-
-When('I navigate to a non-existent job role', async function () {
+When('I navigate to a non-existent job role', async function (this: PlaywrightWorld) {
+  if (!this.page) {
+    throw new Error('Playwright page is not available in the current world');
+  }
   await this.page.goto('/job-roles/99999');
   detailPage = new JobRoleDetailPage(this.page);
 });
