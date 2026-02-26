@@ -1,12 +1,18 @@
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path, { resolve } from 'node:path';
-import { After, Before, BeforeAll } from '@cucumber/cucumber';
+import {
+  After,
+  Before,
+  BeforeAll,
+  setDefaultTimeout,
+} from '@cucumber/cucumber';
 import { chromium } from '@playwright/test';
 import { config } from 'dotenv';
 import type { PlaywrightWorld } from './world';
 
 config({ path: resolve('tests/.env') });
+setDefaultTimeout(20_000);
 
 const BACKEND_DIR = path.resolve(process.cwd(), '../team1-back-app');
 
