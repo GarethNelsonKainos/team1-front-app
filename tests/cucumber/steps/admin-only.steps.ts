@@ -5,7 +5,7 @@ import { LoginPage } from '../../pages/LoginPage';
 import type { PlaywrightWorld } from '../support/world';
 
 Given(
-  'that I am signed in a standard user',
+  'that I am signed in as a standard user',
   async function (this: PlaywrightWorld) {
     const loginPage = new LoginPage(this.page);
     await loginPage.goto();
