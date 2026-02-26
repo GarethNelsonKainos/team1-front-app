@@ -23,5 +23,4 @@ export class BasePage {
   async signOut() {
     await this.logoutButton.click();
   }
-
 }

@@ -76,7 +76,7 @@ export class JobRoleDetailPage extends BasePage {
   async isErrorMessageVisible(): Promise<boolean> {
     return this.errorMessage.isVisible();
   }
-  
+
   async clickBackToJobRoles(): Promise<void> {
     await this.backToJobRolesButton.click();
   }
