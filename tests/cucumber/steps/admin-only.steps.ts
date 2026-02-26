@@ -2,6 +2,7 @@ import { Given, Then, When } from '@cucumber/cucumber';
 import { expect } from '@playwright/test';
 import { APPLICANT } from '../../config/test-users';
 import { AddRolePage } from '../../pages/AddRolePage';
+import { JobRolesListPage } from '../../pages/JobRolesListPage';
 import { LoginPage } from '../../pages/LoginPage';
 import type { PlaywrightWorld } from '../support/world';
 
@@ -25,9 +26,8 @@ When(
 Then(
   'I should not see the {string} button',
   async function (this: PlaywrightWorld, buttonText: string) {
-    const buttonCount = await this.page
-      .getByRole('button', { name: buttonText })
-      .count();
+    const jobRolesListPage = new JobRolesListPage(this.page);
+    const buttonCount = await jobRolesListPage.getButtonCount(buttonText);
     expect(buttonCount).toBe(0);
   },
 );
