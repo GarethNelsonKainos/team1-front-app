@@ -19,4 +19,9 @@ export class BasePage {
       'button[type="submit"][form], form[action="/logout"] button',
     );
   }
+
+  async signOut() {
+    await this.logoutButton.click();
+  }
+
 }

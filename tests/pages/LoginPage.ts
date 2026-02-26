@@ -53,10 +53,6 @@ export class LoginPage extends BasePage {
     return this.passwordInput.isVisible();
   }
 
-  async signOut() {
-    await this.logoutButton.click();
-  }
-
   async isLoginButtonVisible(): Promise<boolean> {
     return this.loginButton.isVisible();
   }

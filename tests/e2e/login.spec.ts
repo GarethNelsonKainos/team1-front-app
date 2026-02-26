@@ -50,5 +50,7 @@ test.describe('Login', () => {
     await loginPage.login(VALID_USER.email, VALID_USER.password);
     await loginPage.signOut();
     await expect(page).toHaveURL('/login');
+    await page.goto('/job-roles');
+    await expect(page).toHaveURL('/login');
   });
 });
