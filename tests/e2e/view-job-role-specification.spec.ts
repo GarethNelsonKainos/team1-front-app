@@ -16,24 +16,13 @@ test.describe('View Job Role Specification', () => {
     await jobRolesPage.clickFirstRole();
 
     const detailPage = new JobRoleDetailPage(page);
+    const closingDate = await detailPage.getClosingDate();
     expect(await detailPage.isHeadingVisible()).toBe(true);
     expect(await detailPage.getLocation()).toBeTruthy();
     expect(await detailPage.getCapability()).toBeTruthy();
     expect(await detailPage.getBand()).toBeTruthy();
     expect(await detailPage.getClosingDate()).toBeTruthy();
     expect(await detailPage.getOpenPositions()).toBeTruthy();
-  });
-
-  test('should display closing date in DD/MM/YYYY format', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(APPLICANT.email, APPLICANT.password);
-
-    const jobRolesPage = new JobRolesListPage(page);
-    await jobRolesPage.clickFirstRole();
-
-    const detailPage = new JobRoleDetailPage(page);
-    const closingDate = await detailPage.getClosingDate();
     expect(closingDate).toMatch(/^\d{2}\/\d{2}\/\d{4}$/);
   });
 
