@@ -1,0 +1,53 @@
+{
+  "defaults": {
+    "standard": "WCAG2AA",
+    "timeout": 15000,
+    "wait": 1000,
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox"]
+    }
+  },
+  "urls": [
+    "http://localhost:3000/login",
+    "http://localhost:3000/application-success",
+    {
+      "url": "http://localhost:3000/job-roles",
+      "actions": [
+        "set field #email to alice@example.com",
+        "set field #password to password1",
+        "click element button[type='submit']",
+        "wait for url to be http://localhost:3000/job-roles"
+      ]
+    },
+    {
+      "url": "http://localhost:3000/job-roles/1",
+      "actions": [
+        "set field #email to alice@example.com",
+        "set field #password to password1",
+        "click element button[type='submit']",
+        "wait for url to be http://localhost:3000/job-roles",
+        "navigate to http://localhost:3000/job-roles/1"
+      ]
+    },
+    {
+      "url": "http://localhost:3000/job-roles/1/apply",
+      "actions": [
+        "set field #email to alice@example.com",
+        "set field #password to password1",
+        "click element button[type='submit']",
+        "wait for url to be http://localhost:3000/job-roles",
+        "navigate to http://localhost:3000/job-roles/1/apply"
+      ]
+    },
+    {
+      "url": "http://localhost:3000/add-role",
+      "actions": [
+        "set field #email to charlie@example.com",
+        "set field #password to adminpass",
+        "click element button[type='submit']",
+        "wait for element a[href='/job-roles'] to be visible",
+        "navigate to http://localhost:3000/add-role"
+      ]
+    }
+  ]
+}
