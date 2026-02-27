@@ -12,7 +12,9 @@
     "test:e2e": "playwright test",
     "test:cucumber": "NODE_OPTIONS='--import tsx' cucumber-js",
     "check": "biome check .",
-    "check:fix": "biome check . --write"
+    "check:fix": "biome check . --write",
+    "a11y": "node acessibility/run-a11y.cjs",
+    "a11y:aws": "BASE_URL=$AWS_FRONT_URL node acessibility/run-a11y.cjs"
   },
   "repository": {
     "type": "git",
@@ -38,6 +40,7 @@
     "form-data": "^4.0.5",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
+    "pa11y-ci": "^4.0.1",
     "nunjucks": "^3.2.4"
   },
   "devDependencies": {
