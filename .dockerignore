@@ -1,0 +1,27 @@
+# Dependencies — Docker installs these fresh inside the container
+node_modules/
+
+# Compiled output — Docker rebuilds this inside the container
+dist/
+
+# Local environment files — never bake secrets into an image
+.env
+.env.local
+.env.production
+
+# Test infrastructure — not needed to run the app
+coverage/
+test-results/
+playwright-report/
+cucumber-report.html
+tests/
+test/
+
+# Git and editor files
+.git/
+.gitignore
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
