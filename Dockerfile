@@ -21,9 +21,11 @@ COPY package*.json ./
 # Remove it so Node treats the compiled output as CommonJS.
 RUN npm pkg delete type && npm ci --omit=dev && npm cache clean --force
 
-COPY --from=builder /app/dist ./dist
-COPY views/ ./views/
-COPY public/ ./public/
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --chown=node:node views/ ./views/
+COPY --chown=node:node public/ ./public/
+
+USER node
 
 EXPOSE 3000
 
