@@ -1,6 +1,7 @@
 services:
   frontend:
     build: .
+    image: academyacrj3r5dv.azurecr.io/ethan-campbell/team1-front-app:latest
     ports:
       - "3000:3000"
     env_file:
