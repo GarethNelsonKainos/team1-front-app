@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package*.json ./
 # TypeScript compiles to CommonJS but package.json has "type":"module".
 # Remove it so Node treats the compiled output as CommonJS.
-RUN npm pkg delete type && npm ci --omit=dev
+RUN npm pkg delete type && npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 COPY views/ ./views/
