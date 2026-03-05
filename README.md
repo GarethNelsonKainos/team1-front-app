@@ -15,7 +15,7 @@ Frontend dev server runs on http://localhost:${PORT} (default is http://localhos
 Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) to be installed and running.
 
 The backend must also be running (either locally on port 3001, or via its own Docker container).
-
+ 
 ```bash
 docker compose up -d        # Build image and start container in background
 docker compose logs -f      # Follow logs
