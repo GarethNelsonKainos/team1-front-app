@@ -8,6 +8,7 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
       exclude: [
+        'accessibility/**',
         'node_modules/**',
         'dist/**',
         '*.config.*',
