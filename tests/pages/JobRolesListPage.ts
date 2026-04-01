@@ -44,4 +44,9 @@ export class JobRolesListPage extends BasePage {
   async isRoleVisible(name: string): Promise<boolean> {
     return this.page.getByRole('link', { name: new RegExp(name) }).isVisible();
   }
+
+  async getButtonCount(buttonText: string): Promise<number> {
+    const button = this.page.getByRole('button', { name: buttonText });
+    return await button.count();
+  }
 }

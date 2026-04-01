@@ -20,6 +20,19 @@ export class BasePage {
     );
   }
 
+  getErrorMessage(message: string): Locator {
+    return this.page.locator('h1, p, div').filter({ hasText: message }).first();
+  }
+
+  async isErrorMessageVisible(message: string): Promise<boolean> {
+    const errorLocator = this.getErrorMessage(message);
+    return await errorLocator.isVisible({ timeout: 10000 });
+  }
+
+  async getUrl(): Promise<string> {
+    return this.page.url();
+  }
+
   async signOut() {
     await this.logoutButton.click();
   }
